@@ -1,0 +1,47 @@
+import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { checkData } from '../core.mjs';
+import { findMovieInfo, movieKey } from '../movie-info.mjs';
+
+const publicFiles = [
+  '.nojekyll', 'index.html', 'admin.html', 'style.css', 'core.mjs',
+  'admin.mjs', 'catalog.mjs', 'github.mjs', 'twitch.mjs', 'movie-info.mjs',
+  'data/movies.json'
+];
+const { items } = checkData(JSON.parse(await readFile('data/movies.json', 'utf8')));
+const previous = {};
+const cacheUrl = process.env.MOVIE_CATALOG_CACHE_URL;
+if (cacheUrl && items.length) {
+  try {
+    const response = await fetch(cacheUrl, { signal: AbortSignal.timeout(8000) });
+    if (response.ok) Object.assign(previous, (await response.json()).records);
+  } catch {
+    console.log('Previous metadata unavailable; rebuilding from Wikidata.');
+  }
+}
+
+const titles = new Map(items.filter(item => !item.poster || !item.runtime)
+  .map(item => [movieKey(item.title), item.title]).filter(([key]) => key));
+const records = Object.fromEntries([...titles.keys()].filter(key => Object.hasOwn(previous, key))
+  .map(key => [key, previous[key]]));
+const hour = 60 * 60 * 1000;
+const now = Date.now();
+const pending = [...titles].filter(([key]) => {
+  const earlier = records[key];
+  const maxAge = earlier?.info?.poster && earlier?.info?.runtime ? 30 * 24 * hour : 6 * hour;
+  return !earlier || now - earlier.checkedAt >= maxAge;
+}).sort(([a], [b]) => (records[a]?.checkedAt || 0) - (records[b]?.checkedAt || 0)).slice(0, 24);
+
+for (const [key, title] of pending) {
+  try {
+    const info = await findMovieInfo(title);
+    records[key] = { info, checkedAt: now };
+  } catch {
+    // Keep previously published details and retry this title at the next build.
+    console.log('A metadata request failed; it will be retried.');
+  }
+}
+
+await mkdir('dist/data', { recursive: true });
+await Promise.all(publicFiles.map(path => copyFile(path, 'dist/' + path)));
+await writeFile('dist/data/movie-info.json', JSON.stringify({ records }) + '\n');
+console.log(`Prepared Pages artifact for ${items.length} films; checked ${pending.length} titles.`);

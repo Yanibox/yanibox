@@ -3,6 +3,19 @@ export const statuses = {
 };
 
 const text = (value, length) => String(value ?? '').trim().slice(0, length);
+const orderDate = new Intl.DateTimeFormat('ru-RU', {
+  dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Moscow'
+});
+
+export function orderDateLabel(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : `${orderDate.format(date)} МСК`;
+}
+
+export function minutes(value) {
+  const amount = Number(value);
+  return Number.isInteger(amount) && amount > 0 && amount <= 1440 ? amount : null;
+}
 
 export function posterUrl(value) {
   try {
@@ -23,6 +36,7 @@ export function film(fields, previous = {}) {
     status: Object.hasOwn(statuses, fields.status) ? fields.status : 'queued',
     rating: Number.isFinite(rating) && rating >= 0 && rating <= 10 ? rating : null,
     poster: posterUrl(text(fields.poster, 1000)),
+    runtime: minutes(fields.runtime),
     note: text(fields.note, 240),
     created: previous.created ?? new Date().toISOString()
   };

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://api.github.com https://api.twitch.tv https://id.twitch.tv wss://eventsub.wss.twitch.tv; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://www.wikidata.org https://api.github.com https://api.twitch.tv https://id.twitch.tv wss://eventsub.wss.twitch.tv; base-uri 'none'; form-action 'none'">
   <title>Панель стримера · Yanibox</title>
   <link rel="stylesheet" href="style.css">
   <script type="module" src="admin.mjs"></script>
@@ -44,7 +44,7 @@
       <section class="panel" aria-labelledby="github-title">
         <div class="panel-head"><h2 id="github-title">Публикация</h2><span class="pill" id="github-state" role="status">Черновик</span></div>
         <p class="muted">После публикации названия фильмов, ники и оценки увидят посетители сайта.</p>
-        <label class="checkbox"><input id="auto-publish" type="checkbox"> Автоматически публиковать новые заказы Twitch</label>
+        <label class="checkbox"><input id="auto-publish" type="checkbox"> Автоматически публиковать новые и отредактированные фильмы</label>
         <div class="form-line"><button id="publish" class="primary" type="button" disabled>Опубликовать</button><button id="reload" type="button">Загрузить с GitHub</button></div>
         <p id="publish-message" class="hint" role="status"></p>
       </section>
@@ -57,7 +57,8 @@
         <label>Категория<input name="category" maxlength="40" list="categories" placeholder="Например, фантастика"><datalist id="categories"></datalist></label>
         <label>Статус<select name="status"></select></label>
         <label>Оценка стримера<input name="rating" type="number" min="0" max="10" step="0.1" placeholder="От 0 до 10"></label>
-        <label class="wide">Ссылка на постер<input name="poster" type="url" maxlength="1000" placeholder="https://…"></label>
+        <label>Длительность, мин<input name="runtime" type="number" min="1" max="1440" step="1" placeholder="Найдётся по названию"></label>
+        <label class="wide">Ссылка на постер<input name="poster" type="url" maxlength="1000" placeholder="Найдётся по названию"></label>
         <label class="wide">Заметка<input name="note" maxlength="240"></label>
         <div class="form-line"><button class="primary" type="submit">Сохранить</button><button id="cancel" type="button" hidden>Отмена</button></div>
         <p class="hint" id="edit-message" role="status"></p>

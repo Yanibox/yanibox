@@ -1,5 +1,6 @@
-import { addRedemption, categories, checkData, element, film, statuses } from './core.mjs';
+import { addRedemption, categories, checkData, element, film, orderDateLabel, statuses } from './core.mjs';
 import { checkOwner, readGithub, writeGithub } from './github.mjs';
+import { findMovieInfo, loadMovieInfo, movieDetails, movieKey, runtimeLabel } from './movie-info.mjs';
 import { beginLogin, finishLogin, getRewards, listen, redirectUri, validate } from './twitch.mjs';
 
 const byId = id => document.getElementById(id);
@@ -27,6 +28,8 @@ let identity;
 let stopSocket;
 let validateTimer;
 let twitchGeneration = 0;
+const movieRecords = Object.create(null);
+const pendingMovieInfo = new Set();
 const say = (id, text) => { byId(id).textContent = text; };
 const lock = (name, action) => navigator.locks
   ? navigator.locks.request(namespace + ':' + name, action)
@@ -62,24 +65,37 @@ function renderPublish() {
 function edit(item) {
   form.reset();
   editing = item?.id || '';
-  if (item) for (const name of ['title', 'viewer', 'category', 'status', 'rating', 'poster', 'note']) {
+  if (item) for (const name of ['title', 'viewer', 'category', 'status', 'rating', 'runtime', 'poster', 'note']) {
     fields[name].value = item[name] ?? '';
   }
+  showMovieSuggestion(item);
   say('edit-title', item ? 'Редактировать фильм' : 'Добавить фильм');
   byId('cancel').hidden = !item;
   if (item) fields.title.focus();
+}
+
+function showMovieSuggestion(item) {
+  const details = item && movieDetails(item, movieRecords);
+  fields.runtime.placeholder = details?.runtime ? runtimeLabel(details.runtime) : 'Найдётся по названию';
+  fields.poster.placeholder = details?.poster ? 'Постер найден автоматически' : 'Найдётся по названию';
 }
 
 function render() {
   renderPublish();
   if (!state) return;
   say('admin-count', `Всего: ${state.items.length}`);
+  if (editing) showMovieSuggestion(state.items.find(item => item.id === editing));
   byId('categories').replaceChildren(...categories(state.items).map(value => new Option(value, value)));
   const rows = [...state.items].reverse().map(item => {
     const row = element('li');
     const name = element('div');
+    const details = movieDetails(item, movieRecords);
+    const key = movieKey(item.title);
+    const info = pendingMovieInfo.has(key) ? 'Ищем сведения…' : details.poster ? 'Есть постер' :
+      movieRecords[key] ? 'Постер не найден' : '';
     name.append(element('strong', item.title), element('div',
-      [statuses[item.status], item.category, item.viewer, item.rating == null ? '' : item.rating + '/10']
+      [statuses[item.status], item.category, item.viewer, orderDateLabel(item.created),
+        runtimeLabel(details.runtime), info, item.rating == null ? '' : item.rating + '/10']
         .filter(Boolean).join(' · '), 'hint'));
     const actions = element('div', null, 'film-meta');
     const change = element('button', 'Изменить');
@@ -102,13 +118,32 @@ function render() {
   byId('queue').replaceChildren(...(rows.length ? rows : [element('li', 'Очередь пока пуста.', 'muted')]));
 }
 
+async function previewMovieInfo(item) {
+  const key = movieKey(item.title);
+  const details = movieDetails(item, movieRecords);
+  const checked = movieRecords[key]?.checkedAt || 0;
+  if (!key || (details.poster && details.runtime) || pendingMovieInfo.has(key) ||
+      Date.now() - checked < 10 * 60 * 1000) return;
+  pendingMovieInfo.add(key);
+  render();
+  try {
+    const info = await findMovieInfo(item.title);
+    movieRecords[key] = { info, checkedAt: Date.now() };
+  } catch {
+    // Pages will retry the lookup after publication.
+  } finally {
+    pendingMovieInfo.delete(key);
+    if (githubToken) render();
+  }
+}
+
 form.addEventListener('submit', async event => {
   event.preventDefault();
   if (!githubToken) return;
   const values = Object.fromEntries(new FormData(form));
   const id = editing;
   try {
-    await lock('draft', () => {
+    const saved = await lock('draft', () => {
       readLocal();
       const previous = state.items.find(item => item.id === id);
       if (id && !previous) throw new Error('Фильм уже удалён. Открой другой заказ.');
@@ -117,9 +152,12 @@ form.addEventListener('submit', async event => {
       if (values.poster.trim() && !item.poster) throw new Error('Ссылка на постер должна начинаться с https://.');
       const items = previous ? state.items.map(row => row.id === id ? item : row) : [...state.items, item];
       saveLocal({ ...state, items }, true);
+      return item;
     });
     edit();
     say('edit-message', 'Фильм сохранён в черновике.');
+    void previewMovieInfo(saved);
+    schedulePublish();
   } catch (error) { say('edit-message', errorText(error)); }
 });
 byId('cancel').addEventListener('click', () => edit());
@@ -214,15 +252,16 @@ function disconnect(status = 'Отключён', message = '') {
 
 async function receive(event) {
   try {
-    const changed = await lock('draft', () => {
-      if (!githubToken) return false;
+    const added = await lock('draft', () => {
+      if (!githubToken) return null;
       readLocal();
       const next = addRedemption(state, event);
       if (next) saveLocal(next, true);
-      return Boolean(next);
+      return next?.items.at(-1);
     });
-    if (changed) {
+    if (added) {
       say('twitch-message', 'Добавлен заказ от ' + (event.user_login || event.user_name || 'зрителя') + '.');
+      void previewMovieInfo(added);
       schedulePublish();
     }
   } catch (error) { say('twitch-message', 'Заказ не сохранён. ' + errorText(error)); }
@@ -316,6 +355,10 @@ byId('login-form').addEventListener('submit', async event => {
     byId('workspace').inert = false;
     byId('logout').focus();
     render();
+    void loadMovieInfo().then(records => {
+      for (const [key, record] of Object.entries(records)) if (!Object.hasOwn(movieRecords, key)) movieRecords[key] = record;
+      if (githubToken) render();
+    }).catch(() => {});
     const twitchCredentials = twitchCallback || JSON.parse(sessionStorage.getItem(namespace + ':twitch') || 'null');
     twitchCallback = undefined;
     if (twitchCredentials) await connect(twitchCredentials);
