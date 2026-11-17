@@ -34,6 +34,7 @@ jobs:
       - run: node scripts/build-pages.mjs
         env:
           MOVIE_CATALOG_CACHE_URL: https://yanibox.github.io/yanibox/data/movie-info.json
+          WATCHTIME_CACHE_URL: https://yanibox.github.io/yanibox/data/watchtime.json
       - uses: actions/upload-pages-artifact@v4
         with:
           path: dist

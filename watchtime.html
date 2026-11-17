@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Время просмотра · Yanibox</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="watchtime.mjs"></script>
+</head>
+<body>
+  <header class="top"><div class="wrap top-inner">
+    <a class="brand" href="./"><span class="mark" aria-hidden="true"></span> Yanibox</a>
+    <a class="nav-link" href="admin.html">Панель стримера ↗</a>
+  </div></header>
+  <main class="wrap">
+    <nav class="site-tabs" aria-label="Разделы витрины">
+      <a href="./">Фильмы</a>
+      <a href="watchtime.html" aria-current="page">Время просмотра</a>
+    </nav>
+    <section class="library watchtime" aria-labelledby="watchtime-title">
+      <header class="section-head">
+        <h1 id="watchtime-title">Время просмотра</h1>
+        <a class="nav-link" href="https://yanibox.streaming.lv/?channel_tops&amp;type=uptime&amp;period=global">Источник WizeBot ↗</a>
+      </header>
+      <div class="panel">
+        <div class="watchtime-filters">
+          <div>
+            <label for="viewer-search">Зритель</label>
+            <input id="viewer-search" type="search" placeholder="Поиск по нику Twitch" autocomplete="off">
+          </div>
+          <div>
+            <label for="period">Период</label>
+            <select id="period">
+              <option value="global">За всё время</option>
+              <option value="month">За месяц</option>
+              <option value="week">За неделю</option>
+            </select>
+          </div>
+        </div>
+        <p id="watchtime-status" class="muted" role="status">Загружаем статистику…</p>
+        <table id="watchtime-table" class="watchtime-table" aria-label="Рейтинг зрителей по времени просмотра" hidden>
+          <thead><tr><th scope="col">Место</th><th scope="col">Зритель</th><th scope="col">Время</th></tr></thead>
+          <tbody id="watchtime-rows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

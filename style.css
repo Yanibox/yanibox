@@ -10,6 +10,10 @@ h2{font-size:clamp(1.4rem,2.5vw,2rem);line-height:1.2}
 .wrap{width:min(1120px,calc(100% - 40px));margin-inline:auto}
 .top{border-bottom:1px solid var(--line)}
 .top-inner{min-height:66px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.site-tabs{display:flex;gap:24px;border-bottom:1px solid var(--line);margin-top:12px}
+.site-tabs a{color:var(--muted);padding:10px 0;border-bottom:2px solid transparent;font-weight:650}
+.site-tabs a:hover,.site-tabs a[aria-current="page"]{color:var(--accent)}
+.site-tabs a[aria-current="page"]{border-bottom-color:var(--accent)}
 .brand{display:flex;gap:10px;align-items:center;font-size:.92rem;font-weight:850;letter-spacing:.1em}
 .nav-link{color:var(--muted);font-size:.85rem;letter-spacing:normal;font-weight:550}
 .nav-link:hover{color:var(--accent)}
@@ -65,6 +69,16 @@ button:disabled{opacity:.48;cursor:default}
 .queue{list-style:none;padding:0;margin:0}
 .queue li{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line);padding:12px 0;overflow-wrap:anywhere}
 .queue button{min-height:34px;font-size:.85rem}
+.watchtime{max-width:800px}
+.watchtime-filters{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px}
+.watchtime-filters input,.watchtime-filters select{width:100%}
+.watchtime-filters label{margin:0 0 4px}
+.watchtime-table{width:100%;border-collapse:collapse;margin-top:12px;text-align:left;font-variant-numeric:tabular-nums}
+.watchtime-table th,.watchtime-table td{padding:10px 8px;border-bottom:1px solid var(--line)}
+.watchtime-table th{color:var(--muted);font-size:.85rem}
+.watchtime-table td:nth-child(2){overflow-wrap:anywhere}
+.watchtime-table th:last-child,.watchtime-table td:last-child{text-align:right;white-space:nowrap}
+.watchtime-table tr:last-child td{border-bottom:0}
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 @media(max-width:700px){.hero{min-height:420px}.hero-art{inset:0 -26% 0 27%;opacity:.42;justify-items:end}.disc{width:min(70vw,460px)}.filters,.setup,.editor{grid-template-columns:1fr 1fr}.filters input{grid-column:span 2}.setup{grid-template-columns:1fr}}
-@media(max-width:400px){.wrap{width:calc(100% - 24px)}.editor .wide,.editor .form-line,.editor>p{grid-column:1/-1}}
+@media(max-width:400px){.wrap{width:calc(100% - 24px)}.editor .wide,.editor .form-line,.editor>p{grid-column:1/-1}.watchtime-filters{grid-template-columns:1fr}.watchtime-table th,.watchtime-table td{padding-inline:4px}}

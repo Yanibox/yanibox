@@ -1,12 +1,14 @@
 import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { checkData } from '../core.mjs';
 import { findMovieInfo, movieKey } from '../movie-info.mjs';
+import { buildWatchtime } from './watchtime.mjs';
 
 const publicFiles = [
   '.nojekyll', 'index.html', 'admin.html', 'style.css', 'core.mjs',
   'admin.mjs', 'catalog.mjs', 'github.mjs', 'twitch.mjs', 'movie-info.mjs',
-  'data/movies.json'
+  'data/movies.json', 'watchtime.html', 'watchtime.mjs'
 ];
+const watchtime = buildWatchtime(process.env.WATCHTIME_CACHE_URL);
 const { items } = checkData(JSON.parse(await readFile('data/movies.json', 'utf8')));
 const previous = {};
 const cacheUrl = process.env.MOVIE_CATALOG_CACHE_URL;
@@ -44,4 +46,5 @@ for (const [key, title] of pending) {
 await mkdir('dist/data', { recursive: true });
 await Promise.all(publicFiles.map(path => copyFile(path, 'dist/' + path)));
 await writeFile('dist/data/movie-info.json', JSON.stringify({ records }) + '\n');
+await writeFile('dist/data/watchtime.json', JSON.stringify(await watchtime) + '\n');
 console.log(`Prepared Pages artifact for ${items.length} films; checked ${pending.length} titles.`);
