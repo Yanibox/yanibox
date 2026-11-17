@@ -6,12 +6,19 @@
   <meta name="referrer" content="no-referrer">
   <title>Время просмотра · Yanibox</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="showcase.css">
+  <script src="theme.js"></script>
   <script type="module" src="watchtime.mjs"></script>
 </head>
-<body>
+<body class="showcase">
   <header class="top"><div class="wrap top-inner">
     <a class="brand" href="./"><span class="mark" aria-hidden="true"></span> Yanibox</a>
-    <a class="nav-link" href="admin.html">Панель стримера ↗</a>
+    <div class="top-actions">
+      <select id="site-theme" aria-label="Тема оформления" hidden>
+        <option value="system">Как в системе</option><option value="dark">Тёмная</option><option value="light">Светлая</option>
+      </select>
+      <a class="nav-link" href="admin.html">Панель стримера ↗</a>
+    </div>
   </div></header>
   <main class="wrap">
     <nav class="site-tabs" aria-label="Разделы витрины">
@@ -20,7 +27,7 @@
     </nav>
     <section class="library watchtime" aria-labelledby="watchtime-title">
       <header class="section-head">
-        <h1 id="watchtime-title">Время просмотра</h1>
+        <h1 id="watchtime-title">Время <em>просмотра</em></h1>
         <a class="nav-link" href="https://yanibox.streaming.lv/?channel_tops&amp;type=uptime&amp;period=global">Источник WizeBot ↗</a>
       </header>
       <div class="panel">
@@ -33,12 +40,30 @@
             <label for="period">Период</label>
             <select id="period">
               <option value="global">За всё время</option>
-              <option value="month">За месяц</option>
-              <option value="week">За неделю</option>
+              <option value="week">Текущая неделя</option>
+              <option value="previous-week">Прошлая неделя</option>
+              <option value="month">Текущий месяц</option>
+              <option value="quarter">Последние 3 месяца</option>
+              <option value="year">Последние 12 месяцев</option>
+              <option value="custom">Выбрать даты</option>
+            </select>
+          </div>
+          <div>
+            <label for="rank-filter">Места</label>
+            <select id="rank-filter">
+              <option value="">Все места</option>
+              <option value="3">Топ-3</option>
+              <option value="5">Топ-5</option>
+              <option value="10">Топ-10</option>
             </select>
           </div>
         </div>
+        <div class="watchtime-dates" id="watchtime-dates" hidden>
+          <div><label for="range-from">С даты</label><input id="range-from" type="date"></div>
+          <div><label for="range-to">По дату включительно</label><input id="range-to" type="date"></div>
+        </div>
         <p id="watchtime-status" class="muted" role="status">Загружаем статистику…</p>
+        <p id="watchtime-details" class="hint" hidden></p>
         <table id="watchtime-table" class="watchtime-table" aria-label="Рейтинг зрителей по времени просмотра" hidden>
           <thead><tr><th scope="col">Место</th><th scope="col">Зритель</th><th scope="col">Время</th></tr></thead>
           <tbody id="watchtime-rows"></tbody>
