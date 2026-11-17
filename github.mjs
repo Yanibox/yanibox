@@ -23,7 +23,7 @@ export async function checkOwner(repo, token) {
     throw new Error('Вход доступен только аккаунту Yanibox.');
   }
   const repository = await request('https://api.github.com/repos/' + repo, token);
-  if (!repository.permissions?.push) throw new Error('В токене нужен доступ на запись в репозиторий киноклуба.');
+  if (!repository.permissions?.push) throw new Error('В токене нужен доступ на запись в репозиторий сайта.');
 }
 
 export async function readGithub(repo, token) {

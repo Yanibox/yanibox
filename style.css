@@ -11,8 +11,7 @@ h2{font-size:clamp(1.4rem,2.5vw,2rem);line-height:1.2}
 .top{border-bottom:1px solid var(--line)}
 .top-inner{min-height:66px;display:flex;align-items:center;justify-content:space-between;gap:16px}
 .brand{display:flex;gap:10px;align-items:center;font-size:.92rem;font-weight:850;letter-spacing:.1em}
-.brand-sub,.nav-link{color:var(--muted);font-size:.85rem;letter-spacing:normal;font-weight:550}
-.brand-sub{border-left:1px solid var(--line);padding-left:10px}
+.nav-link{color:var(--muted);font-size:.85rem;letter-spacing:normal;font-weight:550}
 .nav-link:hover{color:var(--accent)}
 .mark{width:25px;height:25px;display:grid;place-items:center;background:var(--accent);border-radius:7px}
 .mark::after{content:"";border-block:5px solid transparent;border-left:8px solid var(--bg);margin-left:2px}
@@ -66,4 +65,4 @@ button:disabled{opacity:.48;cursor:default}
 .queue button{min-height:34px;font-size:.85rem}
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 @media(max-width:700px){.hero{min-height:420px}.hero-art{inset:0 -26% 0 27%;opacity:.42;justify-items:end}.disc{width:min(70vw,460px)}.filters,.setup,.editor{grid-template-columns:1fr 1fr}.filters input{grid-column:span 2}.setup{grid-template-columns:1fr}}
-@media(max-width:400px){.wrap{width:calc(100% - 24px)}.brand-sub{display:none}.editor .wide,.editor .form-line,.editor>p{grid-column:1/-1}}
+@media(max-width:400px){.wrap{width:calc(100% - 24px)}.editor .wide,.editor .form-line,.editor>p{grid-column:1/-1}}

@@ -6,11 +6,13 @@ const byId = id => document.getElementById(id);
 const form = byId('editor');
 const fields = form.elements;
 const token = byId('github-token');
-const repo = 'Yanibox/kinoclub';
+const repo = 'Yanibox/yanibox';
 const client = byId('client');
 const reward = byId('reward');
 const auto = byId('auto-publish');
-const namespace = 'yanibox-kino:' + new URL('.', import.meta.url).pathname;
+const sitePath = new URL('.', import.meta.url).pathname;
+// Сохраняем доступ к черновикам и настройкам со старого адреса GitHub Pages.
+const namespace = 'yanibox-kino:' + (sitePath === '/yanibox/' ? '/kinoclub/' : sitePath);
 const draftKey = namespace + ':draft';
 let githubToken = '';
 let twitchCallback;
