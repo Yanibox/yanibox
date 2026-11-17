@@ -59,7 +59,7 @@ export async function getRewards(auth, userId) {
   return result.data.filter(reward => reward.is_enabled && reward.is_user_input_required);
 }
 
-export function listen({ auth, userId, rewardId, onEvent, onStatus }) {
+export function listen({ auth, userId, rewardIds, onEvent, onStatus }) {
   const type = 'channel.channel_points_custom_reward_redemption.add';
   let current;
   let next;
@@ -129,14 +129,14 @@ export function listen({ auth, userId, rewardId, onEvent, onStatus }) {
                 method: 'POST',
                 body: JSON.stringify({
                   type, version: '1',
-                  condition: { broadcaster_user_id: userId, reward_id: rewardId },
+                  condition: { broadcaster_user_id: userId },
                   transport: { method: 'websocket', session_id: payload.session.id }
                 })
               });
             }
             if (stopped || current !== connection) return;
             delay = 1000;
-            onStatus('Слушает награду', 'Новые заказы появятся в очереди.');
+            onStatus('Слушает награды', 'Новые заказы появятся в очереди.');
           } catch (error) {
             if (stopped || current !== connection) return;
             stop();
@@ -152,7 +152,7 @@ export function listen({ auth, userId, rewardId, onEvent, onStatus }) {
         }
         case 'notification':
           if (payload.subscription.type === type && payload.event.broadcaster_user_id === userId &&
-              payload.event.reward?.id === rewardId) onEvent(payload.event);
+              rewardIds.has(payload.event.reward?.id)) onEvent(payload.event);
           break;
         case 'revocation':
           stop();

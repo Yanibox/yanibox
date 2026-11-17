@@ -33,12 +33,15 @@
     <div class="setup">
       <section class="panel" aria-labelledby="twitch-title">
         <div class="panel-head"><h2 id="twitch-title">Twitch</h2><span class="pill" id="twitch-state" role="status">Отключён</span></div>
-        <p class="muted">Выбери награду с полем для названия фильма и держи панель открытой во время стрима.</p>
+        <p class="muted">Отметь награды с полем для названия фильма и держи панель открытой во время стрима.</p>
         <label>Client ID приложения<input id="client" autocomplete="off" spellcheck="false"></label>
         <p class="hint">Адрес возврата для консоли Twitch</p>
         <div class="form-line"><code id="redirect"></code><button id="copy-redirect" type="button">Копировать</button></div>
         <div class="form-line"><button id="twitch-login" type="button">Войти через Twitch</button><button id="twitch-stop" type="button" hidden>Отключить Twitch</button></div>
-        <label>Награда за баллы<select id="reward" disabled><option value="">Подключи Twitch</option></select></label>
+        <fieldset id="rewards" class="reward-list" disabled>
+          <legend>Награды за баллы</legend>
+          <div id="reward-options"><p class="hint">Подключи Twitch.</p></div>
+        </fieldset>
         <p id="twitch-message" class="hint" role="status"></p>
       </section>
       <section class="panel" aria-labelledby="github-title">

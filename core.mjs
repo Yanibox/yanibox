@@ -32,6 +32,7 @@ export function film(fields, previous = {}) {
     id: previous.id ?? crypto.randomUUID(),
     title: text(fields.title, 140),
     viewer: text(fields.viewer, 60),
+    rewardTitle: text(previous.rewardTitle ?? fields.rewardTitle, 110),
     category: text(fields.category, 40),
     status: Object.hasOwn(statuses, fields.status) ? fields.status : 'queued',
     rating: Number.isFinite(rating) && rating >= 0 && rating <= 10 ? rating : null,
@@ -46,7 +47,8 @@ export function addRedemption(state, event) {
   if (typeof event.id !== 'string' || !event.id || state.seen.includes(event.id)) return null;
   const item = film({
     title: event.user_input,
-    viewer: event.user_login || event.user_name
+    viewer: event.user_login || event.user_name,
+    rewardTitle: event.reward?.title
   }, { id: 'twitch-' + event.id, created: event.redeemed_at || new Date().toISOString() });
   if (!item.title) return null;
   return { ...state, items: [...state.items, item], seen: [...state.seen, event.id] };

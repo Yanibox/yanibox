@@ -9,7 +9,8 @@ const fields = form.elements;
 const token = byId('github-token');
 const repo = 'Yanibox/yanibox';
 const client = byId('client');
-const reward = byId('reward');
+const rewardsField = byId('rewards');
+const rewardOptions = byId('reward-options');
 const auto = byId('auto-publish');
 const sitePath = new URL('.', import.meta.url).pathname;
 // Сохраняем доступ к черновикам и настройкам со старого адреса GitHub Pages.
@@ -28,6 +29,9 @@ let identity;
 let stopSocket;
 let validateTimer;
 let twitchGeneration = 0;
+const selectedRewards = new Set();
+let subscriptionStatus = '';
+let subscriptionMessage = '';
 const movieRecords = Object.create(null);
 const pendingMovieInfo = new Set();
 const say = (id, text) => { byId(id).textContent = text; };
@@ -94,7 +98,7 @@ function render() {
     const info = pendingMovieInfo.has(key) ? 'Ищем сведения…' : details.poster ? 'Есть постер' :
       movieRecords[key] ? 'Постер не найден' : '';
     name.append(element('strong', item.title), element('div',
-      [statuses[item.status], item.category, item.viewer, orderDateLabel(item.created),
+      [statuses[item.status], item.category, item.viewer, item.rewardTitle, orderDateLabel(item.created),
         runtimeLabel(details.runtime), info, item.rating == null ? '' : item.rating + '/10']
         .filter(Boolean).join(' · '), 'hint'));
     const actions = element('div', null, 'film-meta');
@@ -244,8 +248,11 @@ function disconnect(status = 'Отключён', message = '') {
   auth = undefined;
   clearInterval(validateTimer);
   sessionStorage.removeItem(namespace + ':twitch');
-  reward.disabled = true;
-  reward.replaceChildren(new Option('Подключи Twitch', ''));
+  selectedRewards.clear();
+  subscriptionStatus = '';
+  subscriptionMessage = '';
+  rewardsField.disabled = true;
+  rewardOptions.replaceChildren(element('p', 'Подключи Twitch.', 'hint'));
   byId('twitch-stop').hidden = true;
   twitchStatus(status, message);
 }
@@ -253,7 +260,7 @@ function disconnect(status = 'Отключён', message = '') {
 async function receive(event) {
   try {
     const added = await lock('draft', () => {
-      if (!githubToken) return null;
+      if (!githubToken || !selectedRewards.has(event.reward?.id)) return null;
       readLocal();
       const next = addRedemption(state, event);
       if (next) saveLocal(next, true);
@@ -267,15 +274,43 @@ async function receive(event) {
   } catch (error) { say('twitch-message', 'Заказ не сохранён. ' + errorText(error)); }
 }
 
-function selectReward() {
-  stopSocket?.();
-  const key = namespace + ':reward:' + identity.user_id;
-  localStorage.setItem(key, reward.value);
-  if (!reward.value) {
-    twitchStatus('Twitch подключён', 'Выбери награду для заказов.');
-    return;
+function showSubscription() {
+  if (!selectedRewards.size) {
+    twitchStatus('Twitch подключён', 'Отметь награды для заказов.');
+  } else if (subscriptionStatus === 'Слушает награды') {
+    twitchStatus(`Слушает награды · ${selectedRewards.size}`, subscriptionMessage);
+  } else {
+    twitchStatus(subscriptionStatus, subscriptionMessage);
   }
-  stopSocket = listen({ auth, userId: identity.user_id, rewardId: reward.value, onEvent: receive, onStatus: twitchStatus });
+}
+
+function selectRewards() {
+  if (!identity) return;
+  selectedRewards.clear();
+  for (const checkbox of rewardOptions.querySelectorAll('input:checked')) selectedRewards.add(checkbox.value);
+  localStorage.setItem(namespace + ':reward:' + identity.user_id, JSON.stringify([...selectedRewards]));
+  if (selectedRewards.size && !stopSocket) {
+    stopSocket = listen({
+      auth, userId: identity.user_id, rewardIds: selectedRewards, onEvent: receive,
+      onStatus(status, message) {
+        subscriptionStatus = status;
+        subscriptionMessage = message;
+        if (status === 'Ошибка подписки' || status === 'Подписка отозвана') stopSocket = undefined;
+        showSubscription();
+      }
+    });
+  }
+  showSubscription();
+}
+
+function rememberedRewardIds(userId) {
+  const value = localStorage.getItem(namespace + ':reward:' + userId);
+  // В предыдущей версии сохранялся один идентификатор без JSON.
+  if (!value?.startsWith('[')) return value ? [value] : [];
+  try {
+    const ids = JSON.parse(value);
+    return Array.isArray(ids) ? ids : [];
+  } catch { return []; }
 }
 
 async function connect(credentials) {
@@ -290,16 +325,22 @@ async function connect(credentials) {
     identity = user;
     sessionStorage.setItem(namespace + ':twitch', JSON.stringify(credentials));
     client.value = credentials.clientId;
-    reward.replaceChildren(new Option('Выбрать награду', ''), ...rewards.map(entry =>
-      new Option(`${entry.title} · ${entry.cost} баллов`, entry.id)));
-    reward.disabled = !rewards.length;
-    const remembered = localStorage.getItem(namespace + ':reward:' + user.user_id);
-    if (rewards.some(entry => entry.id === remembered)) {
-      reward.value = remembered;
-      selectReward();
+    rewardsField.disabled = !rewards.length;
+    if (rewards.length) {
+      const remembered = rememberedRewardIds(user.user_id);
+      rewardOptions.replaceChildren(...rewards.map(entry => {
+        const checkbox = element('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = entry.id;
+        checkbox.checked = remembered.includes(entry.id);
+        const label = element('label', null, 'checkbox');
+        label.append(checkbox, element('span', `${entry.title} · ${entry.cost} баллов`));
+        return label;
+      }));
+      selectRewards();
     } else {
-      twitchStatus('Twitch подключён', rewards.length ? 'Канал: ' + user.login + '. Выбери награду.' :
-        'На канале нет активной награды с обязательным вводом текста.');
+      rewardOptions.replaceChildren();
+      twitchStatus('Twitch подключён', 'На канале нет активных наград с обязательным вводом текста.');
     }
     validateTimer = setInterval(async () => {
       try { await validate(credentials); } catch (error) {
@@ -327,7 +368,7 @@ byId('twitch-login').addEventListener('click', () => {
   } catch (error) { say('twitch-message', errorText(error)); }
 });
 byId('twitch-stop').addEventListener('click', () => disconnect());
-reward.addEventListener('change', selectReward);
+rewardOptions.addEventListener('change', selectRewards);
 
 try {
   twitchCallback = finishLogin();

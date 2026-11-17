@@ -35,6 +35,7 @@ function card(item) {
   if (item.rating != null) meta.append(element('span', '★ ' + item.rating.toLocaleString('ru') + ' / 10', 'rating'));
   body.append(meta, element('h3', item.title));
   if (item.viewer) body.append(element('p', 'Заказал: ' + item.viewer, 'hint'));
+  if (item.rewardTitle) body.append(element('p', item.rewardTitle, 'hint'));
   const date = orderDateLabel(item.created);
   if (date) {
     const time = element('time', date, 'hint');
