@@ -1,22 +1,19 @@
-import { addRedemption, categories, checkData, element, film, loadCatalog, statuses } from './core.mjs';
-import { readGithub, writeGithub } from './github.mjs';
+import { addRedemption, categories, checkData, element, film, statuses } from './core.mjs';
+import { checkOwner, readGithub, writeGithub } from './github.mjs';
 import { beginLogin, finishLogin, getRewards, listen, redirectUri, validate } from './twitch.mjs';
 
 const byId = id => document.getElementById(id);
 const form = byId('editor');
 const fields = form.elements;
-const repo = byId('repo');
 const token = byId('github-token');
+const repo = 'Yanibox/kinoclub';
 const client = byId('client');
 const reward = byId('reward');
 const auto = byId('auto-publish');
 const namespace = 'yanibox-kino:' + new URL('.', import.meta.url).pathname;
 const draftKey = namespace + ':draft';
-const githubHost = location.hostname.match(/^([a-z\d-]+)\.github\.io$/i);
-const project = location.pathname.split('/')[1];
-const defaultRepo = githubHost
-  ? githubHost[1] + '/' + (project && project !== 'admin.html' ? project : location.hostname)
-  : '';
+let githubToken = '';
+let twitchCallback;
 let state;
 let dirty = false;
 let editing = '';
@@ -55,10 +52,9 @@ function errorText(error) {
 function renderPublish() {
   say('dirty', dirty ? 'Есть неопубликованные изменения' : '');
   say('github-state', busy ? 'Синхронизация…' : dirty ? 'Черновик' : 'Список загружен');
-  byId('publish').disabled = busy || !state || !dirty || !repo.value.trim() || !token.value.trim();
-  byId('reload').disabled = busy || !repo.value.trim();
-  repo.disabled = busy;
-  token.disabled = busy;
+  byId('publish').disabled = busy || !state || !dirty || !githubToken;
+  byId('reload').disabled = busy || !githubToken;
+  byId('logout').disabled = busy;
 }
 
 function edit(item) {
@@ -106,6 +102,7 @@ function render() {
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
+  if (!githubToken) return;
   const values = Object.fromEntries(new FormData(form));
   const id = editing;
   try {
@@ -127,15 +124,13 @@ byId('cancel').addEventListener('click', () => edit());
 for (const [value, label] of Object.entries(statuses)) fields.status.add(new Option(label, value));
 
 async function sync(action) {
-  if (busy) return;
-  const target = repo.value.trim();
-  const credential = token.value.trim();
-  if (!target) return;
+  if (busy || !githubToken) return;
+  const credential = githubToken;
   busy = true;
   renderPublish();
   say('publish-message', '');
   try {
-    await lock('github', () => action(target, credential));
+    await lock('github', () => action(credential));
   } catch (error) {
     say('publish-message', errorText(error));
   } finally {
@@ -146,16 +141,16 @@ async function sync(action) {
 }
 
 function publish() {
-  if (!token.value.trim() || busy) return;
+  if (!githubToken || busy) return;
   autoPending = false;
-  return sync(async (target, credential) => {
+  return sync(async credential => {
     const snapshot = await lock('draft', () => {
       readLocal();
       return dirty ? state : null;
     });
     if (!snapshot) return;
     const original = JSON.stringify(snapshot);
-    const revision = await writeGithub(target, credential, snapshot);
+    const revision = await writeGithub(repo, credential, snapshot);
     await lock('draft', () => {
       readLocal();
       saveLocal({ ...state, revision }, JSON.stringify(state) !== original);
@@ -165,7 +160,7 @@ function publish() {
 }
 
 function schedulePublish() {
-  if (!auto.checked || !token.value.trim()) {
+  if (!auto.checked || !githubToken) {
     autoPending = false;
     return;
   }
@@ -177,9 +172,9 @@ function schedulePublish() {
 }
 
 byId('publish').addEventListener('click', publish);
-byId('reload').addEventListener('click', () => sync(async (target, credential) => {
+byId('reload').addEventListener('click', () => sync(async credential => {
   const original = localStorage.getItem(draftKey);
-  const { data } = await readGithub(target, credential);
+  const { data } = await readGithub(repo, credential);
   await lock('draft', () => {
     if (original !== localStorage.getItem(draftKey)) throw new Error('Очередь обновилась. Повтори загрузку.');
     readLocal();
@@ -189,11 +184,8 @@ byId('reload').addEventListener('click', () => sync(async (target, credential) =
     say('publish-message', 'Загружена версия с GitHub.');
   });
 }));
-repo.value = defaultRepo || localStorage.getItem(namespace + ':repo') || '';
-repo.addEventListener('change', () => localStorage.setItem(namespace + ':repo', repo.value.trim()));
-for (const control of [repo, token]) control.addEventListener('input', renderPublish);
 window.addEventListener('storage', event => {
-  if (event.key === draftKey) {
+  if (githubToken && event.key === draftKey) {
     readLocal();
     render();
   }
@@ -221,6 +213,7 @@ function disconnect(status = 'Отключён', message = '') {
 async function receive(event) {
   try {
     const changed = await lock('draft', () => {
+      if (!githubToken) return false;
       readLocal();
       const next = addRedemption(state, event);
       if (next) saveLocal(next, true);
@@ -296,14 +289,53 @@ byId('twitch-stop').addEventListener('click', () => disconnect());
 reward.addEventListener('change', selectReward);
 
 try {
-  readLocal();
-  if (!state) {
-    const initial = await loadCatalog();
-    await lock('draft', () => { readLocal(); if (!state) saveLocal(initial, false); });
-  }
-  render();
-  const credentials = finishLogin() || JSON.parse(sessionStorage.getItem(namespace + ':twitch') || 'null');
-  if (credentials) await connect(credentials);
-} catch (error) {
-  say(state ? 'twitch-message' : 'edit-message', errorText(error));
-}
+  twitchCallback = finishLogin();
+  if (twitchCallback) say('login-message', 'Twitch подтвердил вход. Войди в панель, чтобы продолжить.');
+} catch (error) { say('login-message', errorText(error)); }
+
+byId('login-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  const button = byId('login-button');
+  const credential = token.value.trim();
+  if (!credential || button.disabled || githubToken) return;
+  button.disabled = true;
+  token.value = '';
+  say('login-message', 'Проверяем доступ…');
+  try {
+    await checkOwner(repo, credential);
+    const { data } = await readGithub(repo, credential);
+    await lock('draft', () => {
+      readLocal();
+      if (!dirty) saveLocal(data, false);
+    });
+    githubToken = credential;
+    byId('login').hidden = true;
+    byId('workspace').hidden = false;
+    byId('workspace').inert = false;
+    byId('logout').focus();
+    render();
+    const twitchCredentials = twitchCallback || JSON.parse(sessionStorage.getItem(namespace + ':twitch') || 'null');
+    twitchCallback = undefined;
+    if (twitchCredentials) await connect(twitchCredentials);
+  } catch (error) {
+    say(githubToken ? 'twitch-message' : 'login-message', errorText(error));
+  } finally { button.disabled = false; }
+});
+
+byId('logout').addEventListener('click', () => {
+  githubToken = '';
+  autoPending = false;
+  clearTimeout(autoTimer);
+  auto.checked = false;
+  disconnect();
+  edit();
+  state = undefined;
+  dirty = false;
+  byId('queue').replaceChildren();
+  byId('categories').replaceChildren();
+  byId('workspace').inert = true;
+  byId('workspace').hidden = true;
+  byId('login').hidden = false;
+  say('login-message', 'Ты вышел из панели.');
+  token.focus();
+});

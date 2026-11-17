@@ -17,6 +17,15 @@ async function request(url, token, options = {}) {
   throw new Error(`GitHub ответил ${response.status}. Проверь репозиторий, токен и права записи.`);
 }
 
+export async function checkOwner(repo, token) {
+  const user = await request('https://api.github.com/user', token);
+  if (user.login?.toLowerCase() !== repo.split('/')[0].toLowerCase()) {
+    throw new Error('Вход доступен только аккаунту Yanibox.');
+  }
+  const repository = await request('https://api.github.com/repos/' + repo, token);
+  if (!repository.permissions?.push) throw new Error('В токене нужен доступ на запись в репозиторий киноклуба.');
+}
+
 export async function readGithub(repo, token) {
   const result = await request(endpoint(repo), token);
   if (result.encoding !== 'base64') throw new Error('GitHub не вернул содержимое файла фильмов.');

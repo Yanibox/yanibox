@@ -52,6 +52,7 @@ button:disabled{opacity:.48;cursor:default}
 .rating{color:var(--accent);font-weight:700}
 .setup{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .panel{padding:clamp(14px,3vw,25px);margin-bottom:14px;min-width:0}
+.login{max-width:520px;margin-inline:auto}
 .panel label:not(.checkbox){display:grid;gap:4px;font-size:.9rem;font-weight:650}
 .panel label,.panel p,.panel .form-line{margin-top:10px}
 .panel .panel-head{margin-bottom:6px}
