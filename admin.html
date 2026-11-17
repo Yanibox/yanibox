@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex">
+  <title>Панель стримера · YANIBOX</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="admin.mjs"></script>
+</head>
+<body>
+  <header class="top"><div class="wrap top-inner">
+    <a class="brand" href="./"><span class="mark" aria-hidden="true"></span> YANIBOX <span class="brand-sub">Киноклуб</span></a>
+    <a class="nav-link" href="./">Открыть витрину ↗</a>
+  </div></header>
+  <main class="wrap admin">
+    <div class="section-head"><h1>Панель стримера</h1><span id="dirty" class="muted" role="status"></span></div>
+    <div class="setup">
+      <section class="panel" aria-labelledby="twitch-title">
+        <div class="panel-head"><h2 id="twitch-title">Twitch</h2><span class="pill" id="twitch-state" role="status">Отключён</span></div>
+        <p class="muted">Выбери награду с полем для названия фильма и держи панель открытой во время стрима.</p>
+        <label>Client ID приложения<input id="client" autocomplete="off" spellcheck="false"></label>
+        <p class="hint">Адрес возврата для консоли Twitch</p>
+        <div class="form-line"><code id="redirect"></code><button id="copy-redirect" type="button">Копировать</button></div>
+        <div class="form-line"><button id="twitch-login" type="button">Войти через Twitch</button><button id="twitch-stop" type="button" hidden>Отключить Twitch</button></div>
+        <label>Награда за баллы<select id="reward" disabled><option value="">Подключи Twitch</option></select></label>
+        <p id="twitch-message" class="hint" role="status"></p>
+      </section>
+      <section class="panel" aria-labelledby="github-title">
+        <div class="panel-head"><h2 id="github-title">Публикация</h2><span class="pill" id="github-state" role="status">Черновик</span></div>
+        <p class="muted">После публикации названия фильмов, ники и оценки увидят посетители сайта.</p>
+        <label>Репозиторий GitHub<input id="repo" placeholder="Yanibox/название-репозитория" autocomplete="off" spellcheck="false"></label>
+        <label>Токен GitHub <span class="hint">Contents: Read and write</span><input id="github-token" type="password" autocomplete="off" spellcheck="false" placeholder="Fine-grained personal access token"></label>
+        <label class="checkbox"><input id="auto-publish" type="checkbox"> Автоматически публиковать новые заказы Twitch</label>
+        <div class="form-line"><button id="publish" class="primary" type="button" disabled>Опубликовать</button><button id="reload" type="button">Загрузить с GitHub</button></div>
+        <p id="publish-message" class="hint" role="status"></p>
+      </section>
+    </div>
+    <section class="panel" aria-labelledby="edit-title">
+      <h2 id="edit-title">Добавить фильм</h2>
+      <form id="editor" class="editor">
+        <label class="wide">Название<input name="title" required maxlength="140"></label>
+        <label>Зритель<input name="viewer" maxlength="60" autocomplete="off"></label>
+        <label>Категория<input name="category" maxlength="40" list="categories" placeholder="Например, фантастика"><datalist id="categories"></datalist></label>
+        <label>Статус<select name="status"></select></label>
+        <label>Оценка стримера<input name="rating" type="number" min="0" max="10" step="0.1" placeholder="От 0 до 10"></label>
+        <label class="wide">Ссылка на постер<input name="poster" type="url" maxlength="1000" placeholder="https://…"></label>
+        <label class="wide">Заметка<input name="note" maxlength="240"></label>
+        <div class="form-line"><button class="primary" type="submit">Сохранить</button><button id="cancel" type="button" hidden>Отмена</button></div>
+        <p class="hint" id="edit-message" role="status"></p>
+      </form>
+    </section>
+    <section class="panel" aria-labelledby="queue-title">
+      <div class="panel-head"><h2 id="queue-title">Очередь и история</h2><span id="admin-count" class="muted"></span></div>
+      <ul class="queue" id="queue"></ul>
+    </section>
+  </main>
+</body>
+</html>
