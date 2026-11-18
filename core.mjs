@@ -46,6 +46,7 @@ export function film(fields, previous = {}) {
     id: previous.id ?? crypto.randomUUID(),
     title: text(fields.title, 140),
     viewer: text(fields.viewer, 60),
+    source: text(fields.source, 110),
     rewardTitle: text(previous.rewardTitle ?? fields.rewardTitle, 110),
     category: text(fields.category, 40),
     status: Object.hasOwn(statuses, fields.status) ? fields.status : 'queued',
@@ -55,6 +56,7 @@ export function film(fields, previous = {}) {
     runtime: minutes(fields.runtime),
     note: text(fields.note, 240),
     watchedOn: viewingDate(fields.watchedOn),
+    orderedOn: viewingDate(fields.orderedOn),
     created: previous.created ?? new Date().toISOString()
   };
 }

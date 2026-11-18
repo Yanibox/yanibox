@@ -91,7 +91,7 @@ function edit(item) {
   form.reset();
   clearPoster = false;
   editing = item?.id || '';
-  if (item) for (const name of ['title', 'viewer', 'category', 'status', 'rating', 'runtime', 'watchedOn', 'note']) {
+  if (item) for (const name of ['title', 'viewer', 'source', 'category', 'status', 'rating', 'runtime', 'watchedOn', 'orderedOn', 'note']) {
     fields[name].value = item[name] ?? '';
   }
   if (item && !uploadedPoster(item.poster)) fields.poster.value = item.poster;
@@ -184,8 +184,9 @@ function render() {
     const info = pendingMovieInfo.has(key) ? 'Ищем сведения…' : details.poster ? 'Есть постер' :
       movieRecords[key] ? 'Постер не найден' : '';
     name.append(element('strong', item.title), element('div',
-      [statuses[item.status], item.category, item.viewer, item.rewardTitle,
-        item.watchedOn ? `Просмотр: ${viewingDateLabel(item.watchedOn)}` : orderDateLabel(item.created),
+      [statuses[item.status], item.category, item.viewer, item.source, item.rewardTitle,
+        item.watchedOn ? `Просмотр: ${viewingDateLabel(item.watchedOn)}` : '',
+        item.orderedOn ? `Заказ: ${viewingDateLabel(item.orderedOn)}` : orderDateLabel(item.created),
         runtimeLabel(details.runtime), info, item.rating == null ? '' : item.rating + '/10']
         .filter(Boolean).join(' · '), 'hint'));
     const actions = element('div', null, 'film-meta');

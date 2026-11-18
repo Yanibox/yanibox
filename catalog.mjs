@@ -35,12 +35,20 @@ function card(item) {
   if (item.rating != null) meta.append(element('span', '★ ' + item.rating.toLocaleString('ru') + ' / 10', 'rating'));
   body.append(meta, element('h3', item.title));
   if (item.viewer) body.append(element('p', 'Заказал: ' + item.viewer, 'hint'));
+  if (item.source && item.source.toLocaleLowerCase('ru') !== item.viewer.toLocaleLowerCase('ru')) {
+    body.append(element('p', 'Источник: ' + item.source, 'hint'));
+  }
   if (item.rewardTitle) body.append(element('p', item.rewardTitle, 'hint'));
-  const watchedOn = viewingDateLabel(item.watchedOn);
-  const date = watchedOn ? `Посмотрели ${watchedOn}` : orderDateLabel(item.created);
+  const date = item.watchedOn ? `Посмотрели ${viewingDateLabel(item.watchedOn)}` : '';
   if (date) {
     const time = element('time', date, 'hint');
-    time.dateTime = item.watchedOn || item.created;
+    time.dateTime = item.watchedOn;
+    body.append(time);
+  }
+  const ordered = item.orderedOn ? `Заказ от ${viewingDateLabel(item.orderedOn)}` : !date && orderDateLabel(item.created);
+  if (ordered) {
+    const time = element('time', ordered, 'hint');
+    time.dateTime = item.orderedOn || item.created;
     body.append(time);
   }
   if (item.note) body.append(element('p', item.note, 'hint'));
@@ -51,12 +59,12 @@ function card(item) {
 function render() {
   const term = search.value.trim().toLocaleLowerCase('ru');
   const list = items.filter(item =>
-    (!term || [item.title, item.viewer].some(value => value.toLocaleLowerCase('ru').includes(term))) &&
+    (!term || [item.title, item.viewer, item.source].some(value => value.toLocaleLowerCase('ru').includes(term))) &&
     (!category.value || item.category === category.value) &&
     (!status.value || item.status === status.value));
 
   if (sort.value === 'rating') list.sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1));
-  if (sort.value === 'new') list.sort((a, b) => b.created.localeCompare(a.created));
+  if (sort.value === 'new') list.sort((a, b) => (b.orderedOn || b.created).localeCompare(a.orderedOn || a.created));
   if (sort.value === 'watched') list.sort((a, b) => b.watchedOn.localeCompare(a.watchedOn));
   summary.textContent = list.length ? `Показано ${list.length} из ${items.length}` : '';
   message.textContent = list.length ? '' : items.length ? 'По этим фильтрам ничего не нашлось.' : 'В каталоге пока нет фильмов.';

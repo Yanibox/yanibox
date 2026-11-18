@@ -57,9 +57,11 @@
       <form id="editor" class="editor">
         <label class="wide">Название<input name="title" required maxlength="140"></label>
         <label>Зритель<input name="viewer" maxlength="60" autocomplete="off"></label>
+        <label>Источник<input name="source" maxlength="110"></label>
         <label>Категория<input name="category" maxlength="40" list="categories" placeholder="Например, фантастика"><datalist id="categories"></datalist></label>
         <label>Статус<select name="status"></select></label>
         <label>Дата просмотра<input name="watchedOn" type="date" min="1000-01-01" max="9999-12-31"></label>
+        <label>Дата заказа<input name="orderedOn" type="date" min="1000-01-01" max="9999-12-31"></label>
         <label>Оценка стримера<input name="rating" type="number" min="0" max="10" step="0.1" placeholder="От 0 до 10"></label>
         <label>Длительность, мин<input name="runtime" type="number" min="1" max="1440" step="1" placeholder="Найдётся по названию"></label>
         <div class="wide poster-preview">
