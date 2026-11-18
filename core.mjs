@@ -51,6 +51,7 @@ export function film(fields, previous = {}) {
     status: Object.hasOwn(statuses, fields.status) ? fields.status : 'queued',
     rating: Number.isFinite(rating) && rating >= 0 && rating <= 10 ? rating : null,
     poster: posterUrl(text(fields.poster, 1000)),
+    autoPoster: posterUrl(text(fields.autoPoster, 1000)),
     runtime: minutes(fields.runtime),
     note: text(fields.note, 240),
     watchedOn: viewingDate(fields.watchedOn),

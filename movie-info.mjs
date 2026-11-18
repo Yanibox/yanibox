@@ -28,7 +28,7 @@ export const runtimeLabel = value => value ? `${value} мин` : '';
 export function movieDetails(item, records) {
   const match = records[movieKey(item.title)]?.info;
   return {
-    poster: item.poster || posterUrl(match?.poster),
+    poster: item.poster || item.autoPoster || posterUrl(match?.poster),
     runtime: item.runtime || minutes(match?.runtime),
     year: /^\d{4}$/.test(match?.year) ? match.year : ''
   };

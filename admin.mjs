@@ -15,7 +15,6 @@ const client = byId('client');
 const rewardsField = byId('rewards');
 const rewardOptions = byId('reward-options');
 const auto = byId('auto-publish');
-const posterFile = byId('poster-file');
 const posterPreview = byId('poster-preview');
 const sitePath = new URL('.', import.meta.url).pathname;
 // Сохраняем доступ к черновикам и настройкам со старого адреса GitHub Pages.
@@ -28,9 +27,8 @@ let state;
 let dirty = false;
 let editing = '';
 let uploads = {};
-let newPoster = '';
 let clearPoster = false;
-let preparingPoster = false;
+let movieSearchTimer;
 let savingEditor = false;
 let visibilityCheck = 0;
 let busy = false;
@@ -45,7 +43,7 @@ const selectedRewards = new Set();
 let subscriptionStatus = '';
 let subscriptionMessage = '';
 const movieRecords = Object.create(null);
-const pendingMovieInfo = new Set();
+const pendingMovieInfo = new Map();
 const say = (id, text) => { byId(id).textContent = text; };
 const lock = (name, action) => navigator.locks
   ? navigator.locks.request(namespace + ':' + name, action)
@@ -85,21 +83,19 @@ function renderPublish() {
   byId('publish').disabled = busy || savingEditor || !state || !dirty || !githubToken;
   byId('reload').disabled = busy || savingEditor || !githubToken;
   byId('logout').disabled = busy || savingEditor;
-  byId('save-publish').disabled = busy || preparingPoster || savingEditor;
-  byId('save-draft').disabled = busy || preparingPoster || savingEditor;
+  byId('save-publish').disabled = busy || savingEditor;
+  byId('save-draft').disabled = busy || savingEditor;
 }
 
 function edit(item) {
   form.reset();
-  newPoster = '';
   clearPoster = false;
-  preparingPoster = false;
   editing = item?.id || '';
   if (item) for (const name of ['title', 'viewer', 'category', 'status', 'rating', 'runtime', 'watchedOn', 'note']) {
     fields[name].value = item[name] ?? '';
   }
   if (item && !uploadedPoster(item.poster)) fields.poster.value = item.poster;
-  showMovieSuggestion(item);
+  queueMovieSearch();
   renderPublish();
   say('edit-title', item ? 'Редактировать фильм' : 'Добавить фильм');
   byId('cancel').hidden = !item;
@@ -107,102 +103,78 @@ function edit(item) {
 }
 
 function showMovieSuggestion(item) {
-  const details = item && movieDetails(item, movieRecords);
-  fields.runtime.placeholder = details?.runtime ? runtimeLabel(details.runtime) : 'Найдётся по названию';
-  if (preparingPoster) return;
+  const title = fields.title.value.trim();
+  const key = movieKey(title);
+  const record = movieRecords[key];
+  const remembered = item && movieKey(item.title) === key ? item.autoPoster : '';
+  const details = movieDetails({ title, autoPoster: remembered }, movieRecords);
+  fields.runtime.placeholder = details.runtime ? runtimeLabel(details.runtime) : 'Найдётся по названию';
   const link = fields.poster.value.trim();
   const saved = !clearPoster && uploadedPoster(item?.poster) ? item.poster : '';
-  const ownPoster = newPoster || (link ? posterUrl(link) : uploads[saved] || saved);
-  const sameTitle = item?.title === fields.title.value.trim();
-  const source = ownPoster || (sameTitle ? movieDetails({ ...item, poster: '' }, movieRecords).poster : '');
-  byId('remove-poster').hidden = !(newPoster || link || saved);
-  if (posterPreview.getAttribute('src') === source) return;
+  const source = (link ? posterUrl(link) : uploads[saved] || saved) || details.poster;
+  byId('remove-poster').hidden = !(link || saved);
+  if (source) {
+    if (posterPreview.getAttribute('src') === source) return;
+    posterPreview.hidden = true;
+    posterPreview.src = source;
+    say('poster-message', 'Загружаем постер…');
+    return;
+  }
   posterPreview.hidden = true;
-  if (source) posterPreview.src = source;
-  else posterPreview.removeAttribute('src');
-  say('poster-message', source ? 'Проверяем изображение…' : 'Без своего постера сайт попробует найти обложку по названию фильма.');
+  posterPreview.removeAttribute('src');
+  let message = 'Введи название фильма для поиска постера.';
+  if (key) {
+    if (pendingMovieInfo.has(key) || !record) message = 'Ищем постер по названию…';
+    else if (record.error) message = 'Поиск пока недоступен. Сайт попробует ещё раз при публикации.';
+    else message = 'Постер не найден. Попробуй добавить год выпуска к названию.';
+  }
+  say('poster-message', message);
 }
 
 function refreshPoster() {
   showMovieSuggestion(state?.items.find(item => item.id === editing));
 }
 
+function queueMovieSearch() {
+  clearTimeout(movieSearchTimer);
+  const title = fields.title.value.trim();
+  const item = state?.items.find(item => item.id === editing);
+  const autoPoster = item && movieKey(item.title) === movieKey(title) ? item.autoPoster : '';
+  refreshPoster();
+  if (githubToken && movieKey(title)) movieSearchTimer = setTimeout(() => {
+    void previewMovieInfo({ title, autoPoster, poster: posterUrl(fields.poster.value.trim()) });
+  }, 450);
+}
+
 posterPreview.addEventListener('load', () => {
+  if (!posterPreview.getAttribute('src')) return;
   posterPreview.hidden = false;
-  say('poster-message', 'Изображение загружено.');
+  say('poster-message', 'Постер готов.');
 });
 posterPreview.addEventListener('error', () => {
+  if (!posterPreview.getAttribute('src')) return;
   posterPreview.hidden = true;
-  say('poster-message', 'Изображение не открылось. Укажи прямую ссылку или загрузи файл.');
+  say('poster-message', 'Источник не отдал изображение. Можно уточнить название и год или указать ссылку.');
 });
 fields.poster.addEventListener('input', () => {
-  if (fields.poster.value) {
-    posterFile.value = '';
-    preparingPoster = false;
-    newPoster = '';
-    clearPoster = true;
-    renderPublish();
-  }
+  if (fields.poster.value) clearPoster = true;
   refreshPoster();
 });
-fields.title.addEventListener('input', refreshPoster);
+fields.title.addEventListener('input', queueMovieSearch);
 fields.watchedOn.addEventListener('change', () => {
   if (fields.watchedOn.value) fields.status.value = 'watched';
 });
 byId('remove-poster').addEventListener('click', () => {
-  posterFile.value = '';
   fields.poster.value = '';
-  newPoster = '';
   clearPoster = true;
-  preparingPoster = false;
-  refreshPoster();
-  renderPublish();
-});
-
-async function preparePoster(file) {
-  if (file.size > 10 * 1024 * 1024) throw new Error('Выбери изображение до 10 МБ.');
-  const image = await createImageBitmap(file).catch(() => null);
-  if (!image) throw new Error('Не удалось открыть файл. Подойдут JPEG, PNG, WebP или AVIF.');
-  try {
-    const scale = Math.min(1, 720 / Math.max(image.width, image.height));
-    const canvas = document.createElement('canvas');
-    canvas.width = Math.max(1, Math.round(image.width * scale));
-    canvas.height = Math.max(1, Math.round(image.height * scale));
-    canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
-    const encoded = canvas.toDataURL('image/webp', .8);
-    if (!encoded.startsWith('data:image/webp;base64,') || encoded.length > 400000) {
-      throw new Error('Не удалось подготовить постер. Выбери изображение меньшего размера.');
-    }
-    return encoded;
-  } finally { image.close(); }
-}
-
-posterFile.addEventListener('change', async () => {
-  const file = posterFile.files[0];
-  if (!file) return;
-  preparingPoster = true;
-  renderPublish();
-  say('poster-message', 'Готовим постер…');
-  try {
-    const encoded = await preparePoster(file);
-    if (posterFile.files[0] !== file) return;
-    newPoster = encoded;
-    fields.poster.value = '';
-    preparingPoster = false;
-    refreshPoster();
-  } catch (error) {
-    if (posterFile.files[0] !== file) return;
-    preparingPoster = false;
-    posterFile.value = '';
-    say('poster-message', errorText(error));
-  } finally { renderPublish(); }
+  queueMovieSearch();
 });
 
 function render() {
   renderPublish();
   if (!state) return;
   say('admin-count', `Всего: ${state.items.length}`);
-  if (editing) showMovieSuggestion(state.items.find(item => item.id === editing));
+  refreshPoster();
   byId('categories').replaceChildren(...categories(state.items).map(value => new Option(value, value)));
   const rows = [...state.items].reverse().map(item => {
     const row = element('li');
@@ -218,7 +190,7 @@ function render() {
         .filter(Boolean).join(' · '), 'hint'));
     const actions = element('div', null, 'film-meta');
     const change = element('button', 'Изменить');
-    change.addEventListener('click', () => edit(item));
+    change.addEventListener('click', () => { if (!savingEditor) edit(item); });
     const remove = element('button', 'Удалить');
     remove.addEventListener('click', async () => {
       if (!confirm(`Удалить «${item.title}» из списка?`)) return;
@@ -239,47 +211,60 @@ function render() {
 
 async function previewMovieInfo(item) {
   const key = movieKey(item.title);
+  if (!key) return null;
+  if (pendingMovieInfo.has(key)) return pendingMovieInfo.get(key);
+  const record = movieRecords[key];
   const details = movieDetails(item, movieRecords);
-  const checked = movieRecords[key]?.checkedAt || 0;
-  if (!key || (details.poster && details.runtime) || pendingMovieInfo.has(key) ||
-      Date.now() - checked < 10 * 60 * 1000) return;
-  pendingMovieInfo.add(key);
-  render();
-  try {
-    const info = await findMovieInfo(item.title);
+  const fresh = record && Date.now() - record.checkedAt < (record.error ? 15_000 : 600_000);
+  if (fresh || (details.poster && details.runtime)) return record?.info;
+  const request = findMovieInfo(item.title).then(info => {
     movieRecords[key] = { info, checkedAt: Date.now() };
-  } catch {
-    // Pages will retry the lookup after publication.
-  } finally {
+    return info;
+  }, () => {
+    movieRecords[key] = { info: record?.info, checkedAt: Date.now(), error: true };
+    return record?.info;
+  }).finally(() => {
     pendingMovieInfo.delete(key);
     if (githubToken) render();
-  }
+  });
+  pendingMovieInfo.set(key, request);
+  render();
+  return request;
 }
 
 form.addEventListener('submit', async event => {
   event.preventDefault();
-  if (!githubToken || busy || preparingPoster || savingEditor) return;
+  if (!githubToken || busy || savingEditor) return;
   const publishNow = event.submitter?.id !== 'save-draft';
   const values = Object.fromEntries(new FormData(form));
   const id = editing;
-  const image = newPoster;
   const keepPoster = !clearPoster;
+  const link = values.poster.trim();
+  const title = values.title.trim();
+  const before = state.items.find(item => item.id === id);
+  if (!title) return say('edit-message', 'Введи название фильма.');
+  if (link && (!posterUrl(link) || uploadedPoster(link))) {
+    return say('edit-message', 'Нужна прямая ссылка на изображение с https://.');
+  }
   savingEditor = true;
+  form.inert = true;
+  clearTimeout(movieSearchTimer);
   renderPublish();
   try {
+    const ownPoster = link || (keepPoster && uploadedPoster(before?.poster));
+    const remembered = before && movieKey(before.title) === movieKey(title) ? before.autoPoster : '';
+    if (!ownPoster && !remembered) say('edit-message', 'Ищем постер перед сохранением…');
+    const match = ownPoster || remembered ? null : await previewMovieInfo({ title });
     const saved = await lock('draft', () => {
       if (!githubToken) throw new Error('Войди в панель, чтобы сохранить фильм.');
       readLocal();
       const previous = state.items.find(item => item.id === id);
       if (id && !previous) throw new Error('Фильм уже удалён. Открой другой заказ.');
-      const link = values.poster.trim();
-      if (link && (!posterUrl(link) || uploadedPoster(link))) throw new Error('Нужна прямая ссылка на изображение с https://.');
-      values.poster = image ? `data/posters/${crypto.randomUUID()}.webp` : link ||
-        (keepPoster && uploadedPoster(previous?.poster) ? previous.poster : '');
+      values.poster = link || (keepPoster && uploadedPoster(previous?.poster) ? previous.poster : '');
+      values.autoPoster = match?.poster || (previous && movieKey(previous.title) === movieKey(title) ? previous.autoPoster : '');
       const item = film(values, previous);
-      if (!item.title) throw new Error('Введи название фильма.');
       const items = previous ? state.items.map(row => row.id === id ? item : row) : [...state.items, item];
-      saveLocal({ ...state, items }, true, image ? { ...uploads, [item.poster]: image } : uploads);
+      saveLocal({ ...state, items }, true);
       return item;
     });
     edit();
@@ -288,6 +273,7 @@ form.addEventListener('submit', async event => {
     if (publishNow) await publish('edit-message');
   } catch (error) { say('edit-message', errorText(error)); }
   finally {
+    form.inert = false;
     savingEditor = false;
     renderPublish();
     if (autoPending) schedulePublish();

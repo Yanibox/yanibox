@@ -23,7 +23,7 @@ if (cacheUrl && items.length) {
   }
 }
 
-const titles = new Map(items.filter(item => !item.poster || !item.runtime)
+const titles = new Map(items.filter(item => !(item.poster || item.autoPoster) || !item.runtime)
   .map(item => [movieKey(item.title), item.title]).filter(([key]) => key));
 const records = Object.fromEntries([...titles.keys()].filter(key => Object.hasOwn(previous, key))
   .map(key => [key, previous[key]]));
