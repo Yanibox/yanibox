@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://www.wikidata.org https://api.github.com https://api.twitch.tv https://id.twitch.tv wss://eventsub.wss.twitch.tv; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' https: data:; connect-src 'self' https://www.wikidata.org https://api.github.com https://api.twitch.tv https://id.twitch.tv wss://eventsub.wss.twitch.tv; base-uri 'none'; form-action 'none'">
   <title>Панель стримера · Yanibox</title>
   <link rel="stylesheet" href="style.css">
   <script type="module" src="admin.mjs"></script>
@@ -46,8 +46,8 @@
       </section>
       <section class="panel" aria-labelledby="github-title">
         <div class="panel-head"><h2 id="github-title">Публикация</h2><span class="pill" id="github-state" role="status">Черновик</span></div>
-        <p class="muted">После публикации названия фильмов, ники и оценки увидят посетители сайта.</p>
-        <label class="checkbox"><input id="auto-publish" type="checkbox"> Автоматически публиковать новые и отредактированные фильмы</label>
+        <p class="muted">При публикации весь список, включая сохранённые черновики, станет виден посетителям сайта.</p>
+        <label class="checkbox"><input id="auto-publish" type="checkbox"> Автоматически публиковать заказы Twitch</label>
         <div class="form-line"><button id="publish" class="primary" type="button" disabled>Опубликовать</button><button id="reload" type="button">Загрузить с GitHub</button></div>
         <p id="publish-message" class="hint" role="status"></p>
       </section>
@@ -59,11 +59,20 @@
         <label>Зритель<input name="viewer" maxlength="60" autocomplete="off"></label>
         <label>Категория<input name="category" maxlength="40" list="categories" placeholder="Например, фантастика"><datalist id="categories"></datalist></label>
         <label>Статус<select name="status"></select></label>
+        <label>Дата просмотра<input name="watchedOn" type="date" min="1000-01-01" max="9999-12-31"></label>
         <label>Оценка стримера<input name="rating" type="number" min="0" max="10" step="0.1" placeholder="От 0 до 10"></label>
         <label>Длительность, мин<input name="runtime" type="number" min="1" max="1440" step="1" placeholder="Найдётся по названию"></label>
-        <label class="wide">Ссылка на постер<input name="poster" type="url" maxlength="1000" placeholder="Найдётся по названию"></label>
+        <label class="wide">Ссылка на изображение постера<input name="poster" type="url" maxlength="1000" placeholder="https://…"></label>
+        <label class="wide">Или загрузить постер с компьютера<input id="poster-file" type="file" accept="image/jpeg,image/png,image/webp,image/avif"></label>
+        <div class="wide poster-preview">
+          <img id="poster-preview" alt="Предпросмотр постера" referrerpolicy="no-referrer" hidden>
+          <div>
+            <button id="remove-poster" type="button" hidden>Убрать свой постер</button>
+            <p class="hint" id="poster-message" role="status"></p>
+          </div>
+        </div>
         <label class="wide">Заметка<input name="note" maxlength="240"></label>
-        <div class="form-line"><button class="primary" type="submit">Сохранить</button><button id="cancel" type="button" hidden>Отмена</button></div>
+        <div class="form-line editor-actions"><button class="primary" type="submit" id="save-publish">Сохранить и опубликовать</button><button type="submit" id="save-draft">Сохранить черновик</button><button id="cancel" type="button" hidden>Отмена</button></div>
         <p class="hint" id="edit-message" role="status"></p>
       </form>
     </section>

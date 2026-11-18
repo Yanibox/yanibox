@@ -6,6 +6,7 @@ const text = (value, length) => String(value ?? '').trim().slice(0, length);
 const orderDate = new Intl.DateTimeFormat('ru-RU', {
   dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Moscow'
 });
+const watchDate = new Intl.DateTimeFormat('ru-RU', { dateStyle: 'long', timeZone: 'UTC' });
 
 export function orderDateLabel(value) {
   const date = new Date(value);
@@ -17,7 +18,20 @@ export function minutes(value) {
   return Number.isInteger(amount) && amount > 0 && amount <= 1440 ? amount : null;
 }
 
+export function viewingDate(value) {
+  if (typeof value !== 'string' || !/^[1-9]\d{3}-\d{2}-\d{2}$/.test(value)) return '';
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) && date.toISOString().startsWith(value) ? value : '';
+}
+
+export function viewingDateLabel(value) {
+  return viewingDate(value) ? watchDate.format(new Date(value)) : '';
+}
+
+export const uploadedPoster = value => /^data\/posters\/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\.webp$/.test(value);
+
 export function posterUrl(value) {
+  if (uploadedPoster(value)) return value;
   try {
     const url = new URL(value);
     return url.protocol === 'https:' && !url.username && !url.password ? url.href : '';
@@ -39,6 +53,7 @@ export function film(fields, previous = {}) {
     poster: posterUrl(text(fields.poster, 1000)),
     runtime: minutes(fields.runtime),
     note: text(fields.note, 240),
+    watchedOn: viewingDate(fields.watchedOn),
     created: previous.created ?? new Date().toISOString()
   };
 }
@@ -64,8 +79,8 @@ export function checkData(value) {
   return { revision: value.revision, items: value.items.map(item => film(item, item)), seen: value.seen };
 }
 
-export async function loadCatalog() {
-  const response = await fetch(new URL('data/movies.json', import.meta.url), { cache: 'no-store' });
+export async function loadCatalog(signal) {
+  const response = await fetch(new URL('data/movies.json', import.meta.url), { cache: 'no-store', signal });
   if (!response.ok) throw new Error('Список фильмов недоступен.');
   return checkData(await response.json());
 }

@@ -1,10 +1,13 @@
-import { checkData } from './core.mjs';
+import { checkData, uploadedPoster } from './core.mjs';
+
+const api = 'https://api.github.com';
+const catalogPath = 'data/movies.json';
 
 function endpoint(repo) {
   if (!/^[a-z\d][a-z\d-]*\/[a-z\d_.-]+$/i.test(repo) || /\/(\.|\.\.)$/.test(repo)) {
     throw new Error('Укажи репозиторий в формате владелец/название.');
   }
-  return `https://api.github.com/repos/${repo}/contents/data/movies.json`;
+  return `${api}/repos/${repo}/contents/${catalogPath}`;
 }
 
 async function request(url, token, options = {}) {
@@ -26,28 +29,66 @@ export async function checkOwner(repo, token) {
   if (!repository.permissions?.push) throw new Error('В токене нужен доступ на запись в репозиторий сайта.');
 }
 
-export async function readGithub(repo, token) {
-  const result = await request(endpoint(repo), token);
+export async function readGithub(repo, token, ref) {
+  const file = new URL(endpoint(repo));
+  if (ref) file.searchParams.set('ref', ref);
+  const result = await request(file, token);
   if (result.encoding !== 'base64') throw new Error('GitHub не вернул содержимое файла фильмов.');
   const bytes = Uint8Array.from(atob(result.content), char => char.charCodeAt(0));
   return { data: checkData(JSON.parse(new TextDecoder().decode(bytes))), sha: result.sha };
 }
 
-export async function writeGithub(repo, token, draft) {
-  const { data, sha } = await readGithub(repo, token);
-  if (data.revision !== draft.revision) {
-    throw new Error('На GitHub появилась другая версия. Черновик сохранён в этом браузере.');
-  }
-  const next = { ...draft, revision: crypto.randomUUID() };
-  const bytes = new TextEncoder().encode(JSON.stringify(next, null, 2) + '\n');
+function encodeCatalog(data) {
+  const bytes = new TextEncoder().encode(JSON.stringify(data, null, 2) + '\n');
   const chunks = [];
   for (let offset = 0; offset < bytes.length; offset += 8192) {
     chunks.push(String.fromCharCode(...bytes.subarray(offset, offset + 8192)));
   }
-  const content = btoa(chunks.join(''));
-  await request(endpoint(repo), token, {
-    method: 'PUT',
-    body: JSON.stringify({ message: 'Обновить список фильмов', content, sha })
-  });
+  return btoa(chunks.join(''));
+}
+
+export async function writeGithub(repo, token, draft, posters = {}) {
+  const additions = [];
+  for (const [path, dataUrl] of Object.entries(posters)) {
+    const match = /^data:image\/webp;base64,([A-Za-z0-9+/]+={0,2})$/.exec(dataUrl);
+    if (!uploadedPoster(path) || !match || !draft.items.some(item => item.poster === path)) {
+      throw new Error('Постер в черновике повреждён. Выбери файл заново.');
+    }
+    additions.push({ path, contents: match[1] });
+  }
+  const file = endpoint(repo);
+  const hasImages = additions.length > 0;
+  const head = hasImages ? (await request(`${api}/repos/${repo}/git/ref/heads/main`, token)).object.sha : undefined;
+  const { data, sha } = await readGithub(repo, token, head);
+  if (data.revision !== draft.revision) {
+    if (JSON.stringify(data) === JSON.stringify({ ...draft, revision: data.revision })) return data.revision;
+    throw new Error('На GitHub появилась другая версия списка. Черновик сохранён в этом браузере.');
+  }
+  const next = { ...draft, revision: crypto.randomUUID() };
+  const content = encodeCatalog(next);
+  const message = 'Обновить список фильмов';
+  if (hasImages) {
+    additions.push({ path: catalogPath, contents: content });
+    const result = await request(`${api}/graphql`, token, {
+      method: 'POST',
+      body: JSON.stringify({
+        query: 'mutation Publish($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid } } }',
+        variables: { input: {
+          branch: { repositoryNameWithOwner: repo, refName: 'refs/heads/main' },
+          expectedHeadOid: head,
+          message: { headline: message },
+          fileChanges: { additions }
+        } }
+      })
+    });
+    if (!result.data?.createCommitOnBranch?.commit?.oid) {
+      const reason = result.errors?.[0]?.message;
+      throw new Error(`GitHub не сохранил фильм с постером. ${reason || 'Повтори публикацию.'}`);
+    }
+  } else {
+    await request(file, token, {
+      method: 'PUT', body: JSON.stringify({ message, content, sha, branch: 'main' })
+    });
+  }
   return next.revision;
 }

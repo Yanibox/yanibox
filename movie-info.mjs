@@ -59,6 +59,7 @@ function candidate(entity, name, year) {
   const types = values(entity, 'P31').map(value => value.id);
   const descriptions = Object.values(entity.descriptions || {}).map(entry => entry.value);
   const kinoId = values(entity, 'P2603').find(value => /^\d+$/.test(value));
+  const commonsPoster = values(entity, 'P3383').find(value => typeof value === 'string' && /\.(?:jpe?g|png|webp)$/i.test(value));
   if (descriptions.some(desc => television.test(desc)) ||
       !(types.some(type => ['Q11424', 'Q202866', 'Q24862'].includes(type)) ||
         (kinoId && descriptions.some(desc => filmType.test(desc))))) return null;
@@ -77,7 +78,8 @@ function candidate(entity, name, year) {
     id: entity.id,
     year: year || years.find(Boolean) || '',
     runtime,
-    poster: kinoId ? `https://st.kp.yandex.net/images/film_big/${kinoId}.jpg` : '',
+    poster: kinoId ? `https://st.kp.yandex.net/images/film_big/${kinoId}.jpg` :
+      commonsPoster ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(commonsPoster)}?width=540` : '',
     popularity: Object.keys(entity.sitelinks || {}).length
   };
 }
@@ -109,7 +111,9 @@ export async function findMovieInfo(title) {
 }
 
 export async function loadMovieInfo() {
-  const response = await fetch(new URL('data/movie-info.json', import.meta.url), { cache: 'no-cache' });
+  const response = await fetch(new URL('data/movie-info.json', import.meta.url), {
+    cache: 'no-cache', signal: AbortSignal.timeout(8000)
+  });
   if (!response.ok) throw new Error('Сведения о фильмах недоступны.');
   return (await response.json()).records || {};
 }

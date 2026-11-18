@@ -79,6 +79,8 @@
 .showcase .panel { backdrop-filter: blur(18px); border-radius: 24px; }
 .showcase .pill { color: var(--muted); border-color: var(--line); }
 .showcase .library .filters { margin-bottom: 22px; }
+.showcase .card-art { height: clamp(200px, 29vw, 275px); background-color: #171321; }
+.showcase .card-art img { height: 100%; min-height: 0; object-fit: contain; }
 .showcase #catalog-message:not(:empty) {
   border: 1px solid var(--line);
   background: var(--panel);

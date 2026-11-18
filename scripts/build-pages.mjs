@@ -1,5 +1,5 @@
 import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
-import { checkData } from '../core.mjs';
+import { checkData, uploadedPoster } from '../core.mjs';
 import { findMovieInfo, movieKey } from '../movie-info.mjs';
 import { buildWatchtime } from './watchtime.mjs';
 import { publishWatchtimeHistory } from './watchtime-history.mjs';
@@ -11,6 +11,7 @@ const publicFiles = [
 ];
 const watchtime = buildWatchtime(process.env.WATCHTIME_CACHE_URL);
 const { items } = checkData(JSON.parse(await readFile('data/movies.json', 'utf8')));
+const posters = [...new Set(items.map(item => item.poster).filter(uploadedPoster))];
 const previous = {};
 const cacheUrl = process.env.MOVIE_CATALOG_CACHE_URL;
 if (cacheUrl && items.length) {
@@ -45,7 +46,8 @@ for (const [key, title] of pending) {
 }
 
 await mkdir('dist/data', { recursive: true });
-await Promise.all(publicFiles.map(path => copyFile(path, 'dist/' + path)));
+if (posters.length) await mkdir('dist/data/posters', { recursive: true });
+await Promise.all([...publicFiles, ...posters].map(path => copyFile(path, 'dist/' + path)));
 await writeFile('dist/data/movie-info.json', JSON.stringify({ records }) + '\n');
 const watchtimeSnapshot = await watchtime;
 watchtimeSnapshot.days = await publishWatchtimeHistory(process.env.WATCHTIME_HISTORY_DIR, watchtimeSnapshot.periods.global);

@@ -1,4 +1,4 @@
-import { categories, element, loadCatalog, orderDateLabel, statuses } from './core.mjs';
+import { categories, element, loadCatalog, orderDateLabel, statuses, viewingDateLabel } from './core.mjs';
 import { loadMovieInfo, movieDetails, runtimeLabel } from './movie-info.mjs';
 
 const byId = id => document.getElementById(id);
@@ -36,10 +36,11 @@ function card(item) {
   body.append(meta, element('h3', item.title));
   if (item.viewer) body.append(element('p', 'Заказал: ' + item.viewer, 'hint'));
   if (item.rewardTitle) body.append(element('p', item.rewardTitle, 'hint'));
-  const date = orderDateLabel(item.created);
+  const watchedOn = viewingDateLabel(item.watchedOn);
+  const date = watchedOn ? `Посмотрели ${watchedOn}` : orderDateLabel(item.created);
   if (date) {
     const time = element('time', date, 'hint');
-    time.dateTime = item.created;
+    time.dateTime = item.watchedOn || item.created;
     body.append(time);
   }
   if (item.note) body.append(element('p', item.note, 'hint'));
@@ -56,6 +57,7 @@ function render() {
 
   if (sort.value === 'rating') list.sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1));
   if (sort.value === 'new') list.sort((a, b) => b.created.localeCompare(a.created));
+  if (sort.value === 'watched') list.sort((a, b) => b.watchedOn.localeCompare(a.watchedOn));
   summary.textContent = list.length ? `Показано ${list.length} из ${items.length}` : '';
   message.textContent = list.length ? '' : items.length ? 'По этим фильтрам ничего не нашлось.' : 'В каталоге пока нет фильмов.';
   cards.replaceChildren(...list.map(card));
@@ -69,22 +71,26 @@ async function refresh() {
   if (refreshing) return;
   refreshing = true;
   try {
-    const [catalog, info] = await Promise.allSettled([loadCatalog(), loadMovieInfo()]);
-    if (catalog.status !== 'fulfilled') {
-      if (revision === undefined) message.textContent = catalog.reason.message;
-      return;
+    const info = loadMovieInfo().catch(() => null);
+    try {
+      const catalog = await loadCatalog();
+      if (revision !== catalog.revision) {
+        items = catalog.items;
+        revision = catalog.revision;
+        const selected = category.value;
+        category.replaceChildren(new Option('Все категории', ''),
+          ...categories(items).map(value => new Option(value, value)));
+        if ([...category.options].some(option => option.value === selected)) category.value = selected;
+        render();
+      }
+    } catch (error) {
+      if (revision === undefined) message.textContent = error.message;
     }
-    const nextRecords = info.status === 'fulfilled' ? info.value : records;
-    const nextRevision = catalog.value.revision;
-    if (revision === nextRevision && JSON.stringify(records) === JSON.stringify(nextRecords)) return;
-    items = catalog.value.items;
-    revision = nextRevision;
-    records = nextRecords;
-    const selected = category.value;
-    category.replaceChildren(new Option('Все категории', ''),
-      ...categories(items).map(value => new Option(value, value)));
-    if ([...category.options].some(option => option.value === selected)) category.value = selected;
-    render();
+    const nextRecords = await info;
+    if (nextRecords && JSON.stringify(records) !== JSON.stringify(nextRecords)) {
+      records = nextRecords;
+      if (revision !== undefined) render();
+    }
   } finally { refreshing = false; }
 }
 
