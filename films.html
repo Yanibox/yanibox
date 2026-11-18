@@ -38,8 +38,17 @@
         <select id="category"><option value="">Все категории</option></select>
         <label class="visually-hidden" for="status">Статус</label>
         <select id="status"><option value="">Все статусы</option></select>
+        <label class="visually-hidden" for="viewer">Зритель</label>
+        <select id="viewer"><option value="">Все зрители</option></select>
         <label class="visually-hidden" for="sort">Сортировка</label>
-        <select id="sort"><option value="queue">По очереди</option><option value="rating">По оценке</option><option value="new">Сначала новые</option><option value="watched">По дате просмотра</option></select>
+        <select id="sort">
+          <option value="queue">По очереди</option>
+          <option value="old">Дата заказа: сначала старые</option>
+          <option value="new">Дата заказа: сначала новые</option>
+          <option value="planned">По дате плана</option>
+          <option value="watched">По дате просмотра</option>
+          <option value="rating">По оценке</option>
+        </select>
       </div>
       <p id="catalog-message" class="muted" role="status">Загружаем список…</p>
       <div id="cards" class="cards"></div>

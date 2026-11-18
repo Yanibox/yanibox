@@ -42,6 +42,7 @@ export function posterUrl(value) {
 
 export function film(fields, previous = {}) {
   const rating = fields.rating === '' || fields.rating == null ? NaN : Number(fields.rating);
+  const plannedOn = fields.status === 'planned' ? viewingDate(fields.plannedOn) : '';
   return {
     id: previous.id ?? crypto.randomUUID(),
     title: text(fields.title, 140),
@@ -57,6 +58,9 @@ export function film(fields, previous = {}) {
     note: text(fields.note, 240),
     watchedOn: viewingDate(fields.watchedOn),
     orderedOn: viewingDate(fields.orderedOn),
+    plannedOn,
+    plannedTime: plannedOn && typeof fields.plannedTime === 'string' &&
+      /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(fields.plannedTime) ? fields.plannedTime : '',
     created: previous.created ?? new Date().toISOString()
   };
 }

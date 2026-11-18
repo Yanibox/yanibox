@@ -1,6 +1,6 @@
 import {
   addRedemption, categories, checkData, element, film, loadCatalog, orderDateLabel, posterUrl,
-  statuses, uploadedPoster, viewingDateLabel
+  statuses, uploadedPoster, viewingDate, viewingDateLabel
 } from './core.mjs';
 import { checkOwner, readGithub, writeGithub } from './github.mjs';
 import { findMovieInfo, loadMovieInfo, movieDetails, movieKey, runtimeLabel } from './movie-info.mjs';
@@ -87,19 +87,30 @@ function renderPublish() {
   byId('save-draft').disabled = busy || savingEditor;
 }
 
-function edit(item) {
+function updateScheduleForm() {
+  const planned = fields.status.value === 'planned';
+  byId('planned-date-field').hidden = !planned;
+  byId('planned-time-field').hidden = !planned;
+  fields.plannedOn.disabled = !planned;
+  fields.plannedTime.disabled = !planned;
+  fields.plannedOn.required = planned;
+}
+
+function edit(item, plan = false) {
   form.reset();
   clearPoster = false;
   editing = item?.id || '';
-  if (item) for (const name of ['title', 'viewer', 'source', 'category', 'status', 'rating', 'runtime', 'watchedOn', 'orderedOn', 'note']) {
+  if (item) for (const name of ['title', 'viewer', 'source', 'category', 'status', 'rating', 'runtime', 'watchedOn', 'orderedOn', 'plannedOn', 'plannedTime', 'note']) {
     fields[name].value = item[name] ?? '';
   }
+  if (plan) fields.status.value = 'planned';
+  updateScheduleForm();
   if (item && !uploadedPoster(item.poster)) fields.poster.value = item.poster;
   queueMovieSearch();
   renderPublish();
   say('edit-title', item ? 'Редактировать фильм' : 'Добавить фильм');
   byId('cancel').hidden = !item;
-  if (item) fields.title.focus();
+  if (item) (plan ? fields.plannedOn : fields.title).focus();
 }
 
 function showMovieSuggestion(item) {
@@ -163,7 +174,9 @@ fields.poster.addEventListener('input', () => {
 fields.title.addEventListener('input', queueMovieSearch);
 fields.watchedOn.addEventListener('change', () => {
   if (fields.watchedOn.value) fields.status.value = 'watched';
+  updateScheduleForm();
 });
+fields.status.addEventListener('change', updateScheduleForm);
 byId('remove-poster').addEventListener('click', () => {
   fields.poster.value = '';
   clearPoster = true;
@@ -186,12 +199,19 @@ function render() {
     name.append(element('strong', item.title), element('div',
       [statuses[item.status], item.category, item.viewer, item.source, item.rewardTitle,
         item.watchedOn ? `Просмотр: ${viewingDateLabel(item.watchedOn)}` : '',
+        item.plannedOn ? `Показ: ${viewingDateLabel(item.plannedOn)}${item.plannedTime ? ` в ${item.plannedTime} МСК` : ''}` : '',
         item.orderedOn ? `Заказ: ${viewingDateLabel(item.orderedOn)}` : orderDateLabel(item.created),
         runtimeLabel(details.runtime), info, item.rating == null ? '' : item.rating + '/10']
         .filter(Boolean).join(' · '), 'hint'));
     const actions = element('div', null, 'film-meta');
     const change = element('button', 'Изменить');
     change.addEventListener('click', () => { if (!savingEditor) edit(item); });
+    actions.append(change);
+    if (item.status === 'queued') {
+      const plan = element('button', 'Запланировать');
+      plan.addEventListener('click', () => { if (!savingEditor) edit(item, true); });
+      actions.append(plan);
+    }
     const remove = element('button', 'Удалить');
     remove.addEventListener('click', async () => {
       if (!confirm(`Удалить «${item.title}» из списка?`)) return;
@@ -203,7 +223,7 @@ function render() {
         });
       } catch (error) { say('edit-message', errorText(error)); }
     });
-    actions.append(change, remove);
+    actions.append(remove);
     row.append(name, actions);
     return row;
   });
@@ -244,6 +264,7 @@ form.addEventListener('submit', async event => {
   const title = values.title.trim();
   const before = state.items.find(item => item.id === id);
   if (!title) return say('edit-message', 'Введи название фильма.');
+  if (values.status === 'planned' && !viewingDate(values.plannedOn)) return say('edit-message', 'Укажи дату показа.');
   if (link && (!posterUrl(link) || uploadedPoster(link))) {
     return say('edit-message', 'Нужна прямая ссылка на изображение с https://.');
   }

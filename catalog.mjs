@@ -2,12 +2,42 @@ import { categories, element, loadCatalog, orderDateLabel, statuses, viewingDate
 import { loadMovieInfo, movieDetails, runtimeLabel } from './movie-info.mjs';
 
 const byId = id => document.getElementById(id);
-const [search, category, status, sort, summary, message, cards] =
-  ['search', 'category', 'status', 'sort', 'summary', 'catalog-message', 'cards'].map(byId);
+const [search, category, status, viewer, sort, summary, message, cards] =
+  ['search', 'category', 'status', 'viewer', 'sort', 'summary', 'catalog-message', 'cards'].map(byId);
+const lower = value => value.toLocaleLowerCase('ru');
+const viewerName = item => item.viewer || (item.source === 'Стример' ? '' : item.source);
+function orderDate(item) {
+  const timestamp = new Date(item.orderedOn ? `${item.orderedOn}T00:00:00+03:00` : item.created);
+  return Number.isNaN(timestamp.getTime()) ? '' : timestamp.toISOString();
+}
+const planDate = item => item.status === 'planned' && item.plannedOn ? item.plannedOn + item.plannedTime : '';
+const queuePriority = { queued: 0, planned: 1, watched: 2, skipped: 2 };
 let items = [];
 let records = {};
 let revision;
 let refreshing = false;
+
+function compareDates(left, right, direction = 1) {
+  if (!left || !right) return Number(!left) - Number(!right);
+  return direction * left.localeCompare(right);
+}
+
+function compareQueue(a, b) {
+  const priority = queuePriority[a.status] - queuePriority[b.status];
+  if (priority) return priority;
+  if (a.status === 'queued') return compareDates(orderDate(a), orderDate(b));
+  if (a.status === 'planned') return compareDates(planDate(a), planDate(b));
+  return 0;
+}
+
+const comparators = {
+  queue: compareQueue,
+  old: (a, b) => compareDates(orderDate(a), orderDate(b)),
+  new: (a, b) => compareDates(orderDate(a), orderDate(b), -1),
+  planned: (a, b) => compareDates(planDate(a), planDate(b)),
+  watched: (a, b) => compareDates(a.watchedOn, b.watchedOn, -1),
+  rating: (a, b) => (b.rating ?? -1) - (a.rating ?? -1)
+};
 
 function card(item) {
   const { poster, runtime, year } = movieDetails(item, records);
@@ -39,6 +69,12 @@ function card(item) {
     body.append(element('p', 'Источник: ' + item.source, 'hint'));
   }
   if (item.rewardTitle) body.append(element('p', item.rewardTitle, 'hint'));
+  if (item.status === 'planned' && item.plannedOn) {
+    const clock = item.plannedTime ? ` в ${item.plannedTime} МСК` : '';
+    const time = element('time', `Показ ${viewingDateLabel(item.plannedOn)}${clock}`, 'planned-date');
+    time.dateTime = item.plannedTime ? `${item.plannedOn}T${item.plannedTime}+03:00` : item.plannedOn;
+    body.append(time);
+  }
   const date = item.watchedOn ? `Посмотрели ${viewingDateLabel(item.watchedOn)}` : '';
   if (date) {
     const time = element('time', date, 'hint');
@@ -57,15 +93,14 @@ function card(item) {
 }
 
 function render() {
-  const term = search.value.trim().toLocaleLowerCase('ru');
+  const term = lower(search.value.trim());
   const list = items.filter(item =>
-    (!term || [item.title, item.viewer, item.source].some(value => value.toLocaleLowerCase('ru').includes(term))) &&
+    (!term || [item.title, item.viewer, item.source].some(value => lower(value).includes(term))) &&
     (!category.value || item.category === category.value) &&
+    (!viewer.value || lower(viewerName(item)) === viewer.value) &&
     (!status.value || item.status === status.value));
 
-  if (sort.value === 'rating') list.sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1));
-  if (sort.value === 'new') list.sort((a, b) => (b.orderedOn || b.created).localeCompare(a.orderedOn || a.created));
-  if (sort.value === 'watched') list.sort((a, b) => b.watchedOn.localeCompare(a.watchedOn));
+  list.sort(comparators[sort.value] || compareQueue);
   summary.textContent = list.length ? `Показано ${list.length} из ${items.length}` : '';
   message.textContent = list.length ? '' : items.length ? 'По этим фильтрам ничего не нашлось.' : 'В каталоге пока нет фильмов.';
   cards.replaceChildren(...list.map(card));
@@ -73,7 +108,13 @@ function render() {
 
 for (const [value, label] of Object.entries(statuses)) status.add(new Option(label, value));
 search.addEventListener('input', render);
-for (const control of [category, status, sort]) control.addEventListener('change', render);
+for (const control of [category, status, viewer, sort]) control.addEventListener('change', render);
+
+function updateOptions(select, placeholder, options) {
+  const selected = select.value;
+  select.replaceChildren(new Option(placeholder, ''), ...options);
+  if ([...select.options].some(option => option.value === selected)) select.value = selected;
+}
 
 async function refresh() {
   if (refreshing) return;
@@ -85,10 +126,10 @@ async function refresh() {
       if (revision !== catalog.revision) {
         items = catalog.items;
         revision = catalog.revision;
-        const selected = category.value;
-        category.replaceChildren(new Option('Все категории', ''),
-          ...categories(items).map(value => new Option(value, value)));
-        if ([...category.options].some(option => option.value === selected)) category.value = selected;
+        updateOptions(category, 'Все категории', categories(items).map(value => new Option(value, value)));
+        const viewers = new Map(items.map(viewerName).filter(Boolean).map(name => [lower(name), name]));
+        const names = [...viewers.values()].sort((a, b) => a.localeCompare(b, 'ru'));
+        updateOptions(viewer, 'Все зрители', names.map(name => new Option(name, lower(name))));
         render();
       }
     } catch (error) {
