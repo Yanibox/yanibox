@@ -1,0 +1,148 @@
+.home-main { padding-block: clamp(28px, 5vw, 64px) 56px; }
+
+.home-hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  align-items: center;
+  min-height: 405px;
+  overflow: hidden;
+  border: 1px solid #ffe6f53d;
+  border-radius: 32px;
+  background:
+    radial-gradient(ellipse at 82% 38%, #a8627873, transparent 52%),
+    radial-gradient(ellipse at 70% 100%, #65387b9c, transparent 60%),
+    linear-gradient(130deg, #21182f, #38233b 76%, #321f36);
+  box-shadow: inset 0 1px 0 #ffffff26, 0 24px 65px var(--shadow);
+}
+
+.home-intro { z-index: 1; padding: clamp(26px, 6vw, 74px); }
+.home-intro h1 {
+  font: 500 clamp(3.75rem, 11vw, 9rem)/.86 Georgia, serif;
+  letter-spacing: -.085em;
+}
+.home-intro h1 span { color: var(--accent); }
+.home-intro p { max-width: 30ch; margin-block: 24px; color: var(--muted); font-size: clamp(1rem, 2vw, 1.15rem); }
+.home-intro .button { padding: 10px 21px; border-radius: 999px; }
+
+.home-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  height: 100%;
+  pointer-events: none;
+}
+.home-orbit {
+  position: absolute;
+  width: min(91%, 410px);
+  aspect-ratio: 2.1;
+  border: 1px solid #fce2fa50;
+  border-radius: 50%;
+  box-shadow: 0 0 18px #eeb7ff16, inset 0 0 18px #eeb7ff16;
+  rotate: -28deg;
+}
+.home-orbit-tall { width: min(95%, 435px); aspect-ratio: 1.75; rotate: 34deg; }
+.home-glass {
+  display: grid;
+  place-items: center;
+  width: clamp(150px, 24vw, 265px);
+  aspect-ratio: 1;
+  border: 1px solid #ffe3f9a0;
+  border-radius: 31%;
+  background: linear-gradient(145deg, #ffd5df63, #e7b6ff17 47%, #6741827d), #50304b50;
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 1px 2px #fff4f5a0, inset 0 0 30px #ffb5d52d, 0 24px 55px #160d25a0;
+  rotate: -12deg;
+}
+.home-play {
+  width: 34%;
+  aspect-ratio: 1;
+  margin-left: 7%;
+  background: linear-gradient(140deg, #fff4e9, #f3a48e 85%);
+  clip-path: polygon(10% 0, 100% 50%, 10% 100%);
+  rotate: 12deg;
+}
+
+.home-sections { margin-top: clamp(30px, 5vw, 52px); scroll-margin-top: 20px; }
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 245px), 1fr));
+  gap: 14px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.home-link {
+  display: block;
+  height: 100%;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: linear-gradient(135deg, #ffe0ff0c, transparent 66%), var(--panel);
+  backdrop-filter: blur(18px);
+  box-shadow: inset 0 1px 0 var(--highlight), 0 12px 32px var(--shadow);
+}
+.home-link:is(:hover, :focus-visible) { border-color: #ffd1a485; background-color: #3b2a43; }
+.home-link h3 { margin: 13px 0 5px; font-size: 1.2rem; line-height: 1.25; }
+.home-link p { color: var(--muted); }
+.home-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: var(--accent);
+  border: 1px solid #ffd1a44f;
+  border-radius: 13px;
+  background: #ffd1a416;
+}
+.home-icon::before {
+  content: "";
+  grid-area: 1 / 1;
+  width: 20px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+}
+.home-icon-film::before { border-inline-width: 5px; }
+.home-icon-time { color: var(--purple); border-color: #c9a8ff54; background: #c9a8ff19; }
+.home-icon-time::before { height: 20px; border-radius: 50%; }
+.home-icon-time::after {
+  content: "";
+  grid-area: 1 / 1;
+  width: 6px;
+  height: 7px;
+  margin: 0 0 5px 4px;
+  border: solid currentColor;
+  border-width: 0 0 2px 2px;
+}
+.home-icon-stream::after {
+  content: "";
+  grid-area: 1 / 1;
+  width: 6px;
+  border-block: 4px solid transparent;
+  border-left: 6px solid currentColor;
+  margin-left: 2px;
+}
+
+@media (max-width: 620px) {
+  .home-hero { grid-template-columns: 1fr; min-height: 0; }
+  .home-intro { padding-bottom: 4px; }
+  .home-art { height: 218px; }
+  .home-orbit { width: min(75%, 300px); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-intro { animation: .48s ease-out both showcase-in; }
+  .home-art { animation: .7s ease-out both showcase-in; }
+  .home-glass { animation: home-float 7s ease-in-out infinite; }
+  .home-grid { animation: .48s .12s ease-out both showcase-in; }
+  .home-link { transition: transform .2s, border-color .2s, background-color .2s; }
+  .home-link:is(:hover, :focus-visible) { transform: translateY(-4px); }
+}
+
+@keyframes home-float {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-9px) rotate(4deg); }
+}

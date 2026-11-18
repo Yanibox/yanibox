@@ -5,9 +5,9 @@ import { buildWatchtime } from './watchtime.mjs';
 import { publishWatchtimeHistory } from './watchtime-history.mjs';
 
 const publicFiles = [
-  '.nojekyll', 'index.html', 'admin.html', 'style.css', 'core.mjs',
+  '.nojekyll', 'index.html', 'films.html', 'admin.html', 'style.css', 'core.mjs',
   'admin.mjs', 'catalog.mjs', 'github.mjs', 'twitch.mjs', 'movie-info.mjs',
-  'data/movies.json', 'watchtime.html', 'watchtime.mjs', 'watchtime-period.mjs', 'showcase.css', 'theme.js'
+  'data/movies.json', 'watchtime.html', 'watchtime.mjs', 'watchtime-period.mjs', 'showcase.css', 'home.css'
 ];
 const watchtime = buildWatchtime(process.env.WATCHTIME_CACHE_URL);
 const { items } = checkData(JSON.parse(await readFile('data/movies.json', 'utf8')));

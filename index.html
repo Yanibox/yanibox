@@ -4,51 +4,57 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <title>Yanibox</title>
+  <meta name="description" content="Yanibox: очередь фильмов за баллы Twitch, рейтинг зрителей и канал со стримами.">
+  <meta name="theme-color" content="#100e1b">
+  <title>Yanibox · Главная</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="showcase.css">
-  <script src="theme.js"></script>
-  <script type="module" src="catalog.mjs"></script>
+  <link rel="stylesheet" href="home.css">
 </head>
-<body class="showcase">
+<body class="showcase home">
   <header class="top"><div class="wrap top-inner">
-    <a class="brand" href="./"><span class="mark" aria-hidden="true"></span> Yanibox</a>
-    <div class="top-actions">
-      <select id="site-theme" aria-label="Тема оформления" hidden>
-        <option value="system">Как в системе</option><option value="dark">Тёмная</option><option value="light">Светлая</option>
-      </select>
-      <a class="nav-link" href="admin.html">Панель стримера ↗</a>
-    </div>
+    <a class="brand" href="./" aria-current="page"><span class="mark" aria-hidden="true"></span> Yanibox</a>
+    <a class="nav-link" href="admin.html">Панель стримера</a>
   </div></header>
-  <main class="wrap">
-    <nav class="site-tabs" aria-label="Разделы витрины">
-      <a href="./" aria-current="page">Фильмы</a>
-      <a href="watchtime.html">Время просмотра</a>
+  <main class="wrap home-main">
+    <section class="home-hero" aria-labelledby="home-title">
+      <div class="home-intro">
+        <h1 id="home-title">Yanibox<span>.</span></h1>
+        <p>Выбираем фильмы за баллы Twitch, смотрим стримы и считаем часы в чате.</p>
+        <a class="button primary" href="#sections">Смотреть разделы</a>
+      </div>
+      <div class="home-art" aria-hidden="true">
+        <div class="home-orbit home-orbit-wide"></div>
+        <div class="home-orbit home-orbit-tall"></div>
+        <div class="home-glass"><span class="home-play"></span></div>
+      </div>
+    </section>
+    <nav id="sections" class="home-sections" aria-labelledby="sections-title">
+      <h2 id="sections-title">Разделы</h2>
+      <ul class="home-grid">
+        <li>
+          <a class="home-link" href="films.html">
+            <span class="home-icon home-icon-film" aria-hidden="true"></span>
+            <h3>Фильмы</h3>
+            <p>Очередь заказов за баллы канала и оценки просмотренных фильмов.</p>
+          </a>
+        </li>
+        <li>
+          <a class="home-link" href="watchtime.html">
+            <span class="home-icon home-icon-time" aria-hidden="true"></span>
+            <h3>Время просмотра</h3>
+            <p>Рейтинг зрителей и статистика по нику Twitch.</p>
+          </a>
+        </li>
+        <li>
+          <a class="home-link" href="https://www.twitch.tv/yanibox">
+            <span class="home-icon home-icon-stream" aria-hidden="true"></span>
+            <h3>Канал на Twitch</h3>
+            <p>Прямые эфиры и записи стримов Yanibox.</p>
+          </a>
+        </li>
+      </ul>
     </nav>
-    <section class="hero">
-      <div class="hero-content">
-        <p class="eyebrow">Фильмы за баллы Twitch</p>
-        <h1>Что смотрим<br><em>дальше?</em></h1>
-        <p class="hero-description">Зрители предлагают фильмы за баллы канала. Здесь собраны очередь и оценки после просмотра.</p>
-        <a class="button primary" href="#films">К списку фильмов ↓</a>
-      </div>
-      <div class="hero-art" aria-hidden="true"><div class="disc"><div></div></div></div>
-    </section>
-    <section id="films" class="library" aria-labelledby="list-title">
-      <div class="section-head"><h2 id="list-title">Фильмы</h2><p id="summary" class="muted" aria-live="polite"></p></div>
-      <div class="filters">
-        <label class="visually-hidden" for="search">Поиск фильма</label>
-        <input id="search" type="search" placeholder="Поиск по названию или зрителю">
-        <label class="visually-hidden" for="category">Категория</label>
-        <select id="category"><option value="">Все категории</option></select>
-        <label class="visually-hidden" for="status">Статус</label>
-        <select id="status"><option value="">Все статусы</option></select>
-        <label class="visually-hidden" for="sort">Сортировка</label>
-        <select id="sort"><option value="queue">По очереди</option><option value="rating">По оценке</option><option value="new">Сначала новые</option></select>
-      </div>
-      <p id="catalog-message" class="muted" role="status">Загружаем список…</p>
-      <div id="cards" class="cards"></div>
-    </section>
   </main>
 </body>
 </html>
