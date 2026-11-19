@@ -1,5 +1,5 @@
 {
-  "revision": "f1dec0db-7c0c-4a3d-8a7e-ba384f414d1c",
+  "revision": "a8aa1669-8405-4082-96db-7c9e202a93d1",
   "items": [
     {
       "id": "sheet-films-order-17",
@@ -16,6 +16,8 @@
       "note": "",
       "watchedOn": "",
       "orderedOn": "2026-11-05",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -33,6 +35,8 @@
       "note": "",
       "watchedOn": "",
       "orderedOn": "2026-11-07",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -50,6 +54,8 @@
       "note": "",
       "watchedOn": "",
       "orderedOn": "2026-11-07",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -67,6 +73,8 @@
       "note": "",
       "watchedOn": "",
       "orderedOn": "2026-11-07",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -84,13 +92,15 @@
       "note": "",
       "watchedOn": "",
       "orderedOn": "2026-11-12",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
       "id": "sheet-films-history-9",
       "title": "Твое сердце будет разбито",
-      "viewer": "Ирина СвитСандей",
-      "source": "Ирина Свитсандей",
+      "viewer": "Sweet_sunday",
+      "source": "Sweet_sunday",
       "rewardTitle": "Баллы",
       "category": "",
       "status": "watched",
@@ -101,6 +111,8 @@
       "note": "",
       "watchedOn": "2026-11-05",
       "orderedOn": "2026-10-29",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -118,6 +130,8 @@
       "note": "",
       "watchedOn": "2026-10-29",
       "orderedOn": "2026-10-27",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -135,6 +149,8 @@
       "note": "",
       "watchedOn": "2026-10-23",
       "orderedOn": "2026-10-16",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -152,6 +168,8 @@
       "note": "",
       "watchedOn": "2026-10-23",
       "orderedOn": "2026-10-20",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -169,6 +187,8 @@
       "note": "",
       "watchedOn": "2026-10-19",
       "orderedOn": "2026-10-02",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -186,6 +206,8 @@
       "note": "",
       "watchedOn": "2026-10-01",
       "orderedOn": "2026-10-01",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -203,6 +225,8 @@
       "note": "",
       "watchedOn": "2026-09-30",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -220,6 +244,8 @@
       "note": "",
       "watchedOn": "2026-09-27",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -237,6 +263,8 @@
       "note": "",
       "watchedOn": "2026-09-26",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -254,6 +282,8 @@
       "note": "",
       "watchedOn": "2026-09-21",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -271,6 +301,8 @@
       "note": "",
       "watchedOn": "2026-09-13",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -288,6 +320,8 @@
       "note": "",
       "watchedOn": "2026-09-07",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -305,6 +339,8 @@
       "note": "",
       "watchedOn": "2026-08-23",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -322,6 +358,8 @@
       "note": "",
       "watchedOn": "2026-08-19",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -339,6 +377,8 @@
       "note": "",
       "watchedOn": "2026-08-18",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -356,6 +396,8 @@
       "note": "",
       "watchedOn": "2026-08-15",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -373,6 +415,8 @@
       "note": "",
       "watchedOn": "2026-08-12",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -390,6 +434,8 @@
       "note": "",
       "watchedOn": "2026-08-10",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -407,6 +453,8 @@
       "note": "",
       "watchedOn": "2026-08-09",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -424,6 +472,8 @@
       "note": "",
       "watchedOn": "2026-08-07",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -441,6 +491,8 @@
       "note": "",
       "watchedOn": "2026-08-03",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -458,6 +510,8 @@
       "note": "",
       "watchedOn": "2025-11-14",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -475,6 +529,8 @@
       "note": "",
       "watchedOn": "2025-11-14",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -492,6 +548,8 @@
       "note": "",
       "watchedOn": "2024-09-22",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -509,6 +567,8 @@
       "note": "",
       "watchedOn": "2024-09-21",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -526,6 +586,8 @@
       "note": "",
       "watchedOn": "2024-09-08",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -543,6 +605,8 @@
       "note": "",
       "watchedOn": "2024-09-07",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -560,6 +624,8 @@
       "note": "",
       "watchedOn": "2024-09-05",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -577,6 +643,8 @@
       "note": "",
       "watchedOn": "2024-09-02",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -594,6 +662,8 @@
       "note": "",
       "watchedOn": "2024-02-04",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -611,6 +681,8 @@
       "note": "",
       "watchedOn": "2024-02-02",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -628,6 +700,8 @@
       "note": "",
       "watchedOn": "2024-01-11",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -645,6 +719,8 @@
       "note": "",
       "watchedOn": "2024-01-08",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -662,6 +738,8 @@
       "note": "",
       "watchedOn": "2024-01-08",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -679,6 +757,8 @@
       "note": "",
       "watchedOn": "2024-01-07",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -696,6 +776,8 @@
       "note": "",
       "watchedOn": "2024-01-06",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -713,6 +795,8 @@
       "note": "",
       "watchedOn": "2023-12-17",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -730,6 +814,8 @@
       "note": "",
       "watchedOn": "2023-12-09",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -747,6 +833,8 @@
       "note": "",
       "watchedOn": "",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -764,6 +852,8 @@
       "note": "",
       "watchedOn": "",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -781,6 +871,8 @@
       "note": "",
       "watchedOn": "",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -798,6 +890,8 @@
       "note": "",
       "watchedOn": "",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -815,6 +909,8 @@
       "note": "",
       "watchedOn": "",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -832,6 +928,8 @@
       "note": "",
       "watchedOn": "",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -849,6 +947,8 @@
       "note": "",
       "watchedOn": "",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -866,6 +966,8 @@
       "note": "",
       "watchedOn": "",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -883,6 +985,8 @@
       "note": "",
       "watchedOn": "",
       "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     },
     {
@@ -900,6 +1004,8 @@
       "note": "В таблице заказ записан как «Джон Уик, Огромный член».",
       "watchedOn": "",
       "orderedOn": "2026-10-08",
+      "plannedOn": "",
+      "plannedTime": "",
       "created": ""
     }
   ],
