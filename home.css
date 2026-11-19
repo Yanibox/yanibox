@@ -103,6 +103,13 @@
   border-radius: 4px;
 }
 .home-icon-film::before { border-inline-width: 5px; }
+.home-icon-game::before { width: 24px; height: 14px; border-radius: 8px; }
+.home-icon-game::after {
+  content: "+ ·";
+  grid-area: 1 / 1;
+  margin-top: -1px;
+  font: 750 11px/1 system-ui, sans-serif;
+}
 .home-icon-time::before { height: 20px; border-radius: 50%; }
 .home-icon-time::after {
   content: "";

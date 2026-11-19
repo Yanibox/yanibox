@@ -1,0 +1,42 @@
+name: Sample Twitch game time
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/twitch-game-history.yml
+      - scripts/twitch-game-history.mjs
+      - games-data.mjs
+  workflow_dispatch:
+  schedule:
+    - cron: '4,14,24,34,44,54 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: twitch-game-history
+
+jobs:
+  sample:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v5
+        with:
+          ref: twitch-game-history
+          path: .twitch-game-history
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/twitch-game-history.mjs .twitch-game-history
+      - name: Save game time
+        working-directory: .twitch-game-history
+        run: |
+          git add -- twitch-games.json
+          if git diff --cached --quiet; then exit 0; fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Sample Yanibox Twitch categories'
+          git push origin HEAD:twitch-game-history

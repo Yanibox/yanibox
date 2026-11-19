@@ -46,25 +46,32 @@ function decodeFile(result) {
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 
-export async function readSchedule(repo, token) {
-  const result = await request(endpoint(repo, 'data/schedule.json') + '?ref=main', token);
+async function readDataFile(repo, token, path) {
+  const result = await request(endpoint(repo, path) + '?ref=main', token);
   return { data: decodeFile(result), sha: result.sha };
 }
 
-export async function writeSchedule(repo, token, data, sha) {
-  if (!sha) throw new Error('Сначала загрузи расписание.');
+async function writeDataFile(repo, token, path, data, sha, message, conflict) {
+  if (!sha) throw new Error('Сначала загрузи список.');
   try {
-    const result = await request(endpoint(repo, 'data/schedule.json'), token, {
+    const result = await request(endpoint(repo, path), token, {
       method: 'PUT', body: JSON.stringify({
-        message: 'Обновить расписание стримов', content: encodeCatalog(data), sha, branch: 'main'
+        message, content: encodeCatalog(data), sha, branch: 'main'
       })
     });
     return result.content.sha;
   } catch (error) {
-    if (error instanceof CatalogChanged) throw new Error('Расписание уже обновилось на GitHub. Нажми «Обновить», проверь изменения и попробуй снова.');
+    if (error instanceof CatalogChanged) throw new Error(conflict);
     throw error;
   }
 }
+
+export const readSchedule = (repo, token) => readDataFile(repo, token, 'data/schedule.json');
+export const writeSchedule = (repo, token, data, sha) => writeDataFile(repo, token, 'data/schedule.json', data, sha,
+  'Обновить расписание стримов', 'Расписание уже обновилось на GitHub. Нажми «Обновить», проверь изменения и попробуй снова.');
+export const readGames = (repo, token) => readDataFile(repo, token, 'data/games.json');
+export const writeGames = (repo, token, data, sha) => writeDataFile(repo, token, 'data/games.json', data, sha,
+  'Обновить каталог игр', 'Каталог уже изменился. Открой игру заново и проверь свежие данные.');
 
 export async function findCatalogRevision(repo, token, revision) {
   endpoint(repo);

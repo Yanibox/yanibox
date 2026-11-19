@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="Игры на стримах Yanibox, планы, время прохождения и статистика Twitch.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' https:; connect-src 'self'; base-uri 'none'">
+  <title>Игры · Afterchat</title>
+  <link rel="stylesheet" href="style.css?v=planning">
+  <link rel="stylesheet" href="showcase.css?v=compact">
+  <link rel="stylesheet" href="games.css">
+  <script type="module" src="games.mjs"></script>
+</head>
+<body class="showcase">
+  <header class="top"><div class="wrap top-inner">
+    <a class="brand" href="./"><span class="mark" aria-hidden="true"></span> Afterchat</a>
+    <a class="nav-link" href="admin.html">Панель стримера</a>
+  </div></header>
+  <main class="wrap">
+    <nav class="site-tabs" aria-label="Разделы витрины">
+      <a href="./">Главная</a>
+      <a href="films.html">Заказы зрителей</a>
+      <a href="games.html" aria-current="page">Игры</a>
+      <a href="schedule.html">Расписание</a>
+      <a href="watchtime.html">Время просмотра</a>
+      <a href="profile.html">Профиль</a>
+    </nav>
+    <section class="library game-library" aria-labelledby="games-title">
+      <header class="library-header games-header">
+        <div><h1 id="games-title">Игры <em>на стриме</em></h1><p>Во что играем, что прошли и что дальше.</p></div>
+        <p id="games-summary" class="muted" aria-live="polite"></p>
+      </header>
+      <div class="game-filters">
+        <label class="visually-hidden" for="games-search">Найти игру</label>
+        <input id="games-search" type="search" placeholder="Найти игру">
+        <label class="visually-hidden" for="games-status">Статус игры</label>
+        <select id="games-status"><option value="">Все статусы</option></select>
+        <label class="visually-hidden" for="games-sort">Сортировка</label>
+        <select id="games-sort">
+          <option value="list">По списку</option>
+          <option value="stream">По времени на Twitch</option>
+          <option value="average">По длительности сюжета</option>
+          <option value="title">По названию</option>
+        </select>
+      </div>
+      <p id="games-message" class="muted" role="status">Загружаем игры…</p>
+      <ul id="games-cards" class="game-grid"></ul>
+      <p id="games-sources" class="hint" hidden>«Сюжет» — среднее время по HowLongToBeat. «Yanibox» — время прохождения, отмеченное стримером. Twitch показывает время в категории по наблюдениям, начатым <time></time>.</p>
+    </section>
+  </main>
+</body>
+</html>

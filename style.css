@@ -109,8 +109,6 @@ button:disabled{opacity:.48;cursor:default}
 .management-tools{display:flex;align-items:end;flex-wrap:wrap;gap:8px 12px}
 .management-tools label{flex:1 1 180px}
 .management-list{margin-top:14px}
-#game-list li{display:grid;grid-template-columns:minmax(0,1fr) minmax(105px,150px)}
-#game-list select{min-height:34px;padding:4px 8px;font-size:.84rem}
 .action-dialog{width:min(430px,calc(100% - 28px));margin:auto;color:var(--ink);background:#30141b;max-height:calc(100% - 24px);overflow:auto}
 .action-dialog::backdrop{background:#10050bd9}
 .action-dialog [role=status]:empty{display:none}

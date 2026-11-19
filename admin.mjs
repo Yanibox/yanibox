@@ -25,7 +25,7 @@ const draftKey = namespace + ':draft';
 const autoKey = namespace + ':auto-publish';
 let githubToken = '';
 const streams = scheduleAdmin(repo, () => githubToken);
-const games = gamesAdmin(namespace, () => Boolean(githubToken));
+const games = gamesAdmin(repo, () => githubToken);
 const sections = [...document.querySelectorAll('[data-admin-section]')];
 function openSection(section) {
   for (const button of sections) {

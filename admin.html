@@ -8,7 +8,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' https: data:; connect-src 'self' https://www.wikidata.org https://api.github.com https://api.twitch.tv https://id.twitch.tv wss://eventsub.wss.twitch.tv; base-uri 'none'; form-action 'none'">
   <title>Панель стримера · Afterchat</title>
   <link rel="stylesheet" href="style.css?v=planning">
-  <script type="module" src="admin.mjs?v=planning"></script>
+  <script type="module" src="admin.mjs?v=games"></script>
 </head>
 <body>
   <header class="top"><div class="wrap top-inner">
@@ -126,18 +126,29 @@
       </details>
     </div>
     <section id="admin-games" class="panel" hidden>
-      <div class="panel-head"><h2>Игры</h2><span id="games-count" class="muted"></span></div>
-      <p class="hint">Идеи и статусы сохраняются в этом браузере.</p>
-      <label>Импортировать лист «Игры»<input id="games-file" type="file" accept=".xlsx"></label>
-      <form id="game-editor" class="management-tools">
-        <label>Новая игра<input name="title" maxlength="160" required></label>
-        <button type="submit" class="primary">Добавить</button>
+      <div class="panel-head"><h2>Игры</h2><a class="nav-link" href="games.html">Открыть витрину ↗</a></div>
+      <h3 id="game-edit-title">Добавить игру</h3>
+      <form id="game-editor" class="editor" inert>
+        <label class="wide">Название<input name="title" maxlength="160" required></label>
+        <label>Статус<select name="status"></select></label>
+        <label>Моё прохождение, мин<input name="ownMinutes" type="number" min="1" step="1"></label>
+        <details class="full-row poster-options">
+          <summary>Обложка, среднее время и категория Twitch</summary>
+          <div class="editor">
+            <label class="wide">Ссылка на обложку<input name="poster" type="url" maxlength="1000"></label>
+            <label>Время сюжета, мин<input name="averageMinutes" type="number" min="1" step="1"></label>
+            <label>ID HowLongToBeat<input name="hltbId" type="number" min="1" step="1"></label>
+            <label class="wide">Точное название категории Twitch<input name="twitchCategory" maxlength="160"></label>
+          </div>
+        </details>
+        <div class="form-line full-row"><button type="submit" class="primary">Сохранить и опубликовать</button><button id="game-cancel" type="button" hidden>Отмена</button></div>
       </form>
       <div class="management-tools">
         <label>Поиск<input id="game-search" type="search"></label>
-        <label>Статус<select id="game-filter"><option value="">Все статусы</option></select></label>
+        <button id="games-reload" type="button">Обновить список</button>
       </div>
       <p id="games-message" class="hint" role="status"></p>
+      <p id="games-count" class="hint"></p>
       <ul id="game-list" class="queue management-list"></ul>
     </section>
     </div>

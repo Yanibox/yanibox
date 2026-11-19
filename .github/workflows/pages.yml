@@ -34,6 +34,11 @@ jobs:
           ref: watchtime-history
           path: .watchtime-history
       - uses: actions/configure-pages@v5
+      - uses: actions/checkout@v5
+        with:
+          ref: twitch-game-history
+          path: .twitch-game-history
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -43,6 +48,7 @@ jobs:
           MOVIE_CATALOG_CACHE_URL: https://yanibox.github.io/yanibox/data/movie-info.json
           WATCHTIME_CACHE_URL: https://yanibox.github.io/yanibox/data/watchtime.json
           WATCHTIME_HISTORY_DIR: .watchtime-history
+          TWITCH_GAME_HISTORY_DIR: .twitch-game-history
           SUPABASE_URL: ${{ vars.SUPABASE_RATINGS_ENABLED == 'true' && vars.SUPABASE_URL || '' }}
           SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_RATINGS_ENABLED == 'true' && vars.SUPABASE_PUBLISHABLE_KEY || '' }}
       - name: Save daily WizeBot snapshot

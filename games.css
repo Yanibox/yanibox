@@ -1,0 +1,57 @@
+.game-library { padding-top: 18px; }
+.games-header {
+  background: radial-gradient(ellipse at 100% 0%, #5a39a875, transparent 75%), #231522ed;
+  border-color: #d2afff52;
+}
+.games-header em { color: #ddbcff; }
+.game-filters { display: grid; grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)); gap: 9px; margin-bottom: 14px; }
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 178px), 1fr));
+  gap: 12px;
+  align-items: start;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.game-card { background: #21151fee; border: 1px solid #ddbcff40; border-radius: 15px; overflow: hidden; }
+.game-cover {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  height: clamp(166px, 23vw, 236px);
+  background: radial-gradient(ellipse at top, #4d365e, #1c1424 85%);
+}
+.game-cover > span:first-child { grid-area: 1 / 1; font: 650 4rem Georgia, serif; color: #d3ade95e; }
+.game-cover img { position: absolute; width: 100%; height: 100%; object-fit: contain; }
+.game-state {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  padding: 3px 8px;
+  border: 1px solid currentColor;
+  border-radius: 20px;
+  background: #1d1425ee;
+  color: #f0d8ff;
+  font-size: .71rem;
+  font-weight: 700;
+}
+.game-state[data-status="playing"] { color: #c6deff; }
+.game-state[data-status="finished"] { color: #adf0ca; }
+.game-details { padding: 10px; overflow-wrap: anywhere; }
+.game-details h2 { font: 750 clamp(.96rem, 1.4vw, 1.13rem)/1.2 system-ui, sans-serif; }
+.game-details dl { display: grid; gap: 2px; margin: 9px 0 0; }
+.game-metric { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 4px; font-size: .77rem; }
+.game-metric dt { color: #e3cddb; }
+.game-metric dd { margin: 0; color: #fff1fa; font-variant-numeric: tabular-nums; }
+.game-metric dd a { color: #e5c9ff; }
+.game-metric dd a:hover { text-decoration: underline; }
+#games-message:empty, #games-summary:empty { display: none; }
+#games-sources { margin-top: 16px; }
+@media (max-width: 580px) {
+  .game-filters { grid-template-columns: 1fr 1fr; }
+  .game-filters input { grid-column: 1 / -1; }
+  .game-filters select { padding-inline: 8px; font-size: .86rem; }
+  .game-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 138px), 1fr)); gap: 9px; }
+}

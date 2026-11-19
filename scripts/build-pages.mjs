@@ -3,16 +3,21 @@ import { checkData, uploadedPoster } from '../core.mjs';
 import { findMovieInfo, movieKey } from '../movie-info.mjs';
 import { buildWatchtime } from './watchtime.mjs';
 import { publishWatchtimeHistory } from './watchtime-history.mjs';
+import { checkGames } from '../games-data.mjs';
+import { readGameHistory } from './twitch-game-history.mjs';
 
 const publicFiles = [
   '.nojekyll', 'index.html', 'films.html', 'profile.html', 'admin.html', 'style.css', 'core.mjs',
   'admin.mjs', 'catalog.mjs', 'film-ratings.mjs', 'viewer-account.mjs', 'profile.mjs', 'github.mjs', 'twitch.mjs', 'movie-info.mjs',
   'data/movies.json', 'watchtime.html', 'watchtime.mjs', 'watchtime-period.mjs', 'showcase.css', 'home.css',
   'data/cinema-wallpaper.webp', 'data/schedule.json', 'schedule.html', 'schedule.mjs',
-  'schedule-data.mjs', 'schedule-admin.mjs', 'games-admin.mjs', 'showcase-owner.mjs'
+  'schedule-data.mjs', 'schedule-admin.mjs', 'games-admin.mjs', 'showcase-owner.mjs',
+  'games.html', 'games.css', 'games.mjs', 'games-data.mjs', 'data/games.json'
 ];
 const watchtime = buildWatchtime(process.env.WATCHTIME_CACHE_URL);
 const { items } = checkData(JSON.parse(await readFile('data/movies.json', 'utf8')));
+checkGames(JSON.parse(await readFile('data/games.json', 'utf8')));
+const { seconds = {}, startedAt, updatedAt } = await readGameHistory(process.env.TWITCH_GAME_HISTORY_DIR);
 const posters = [...new Set(items.map(item => item.poster).filter(uploadedPoster))];
 const previous = {};
 const cacheUrl = process.env.MOVIE_CATALOG_CACHE_URL;
@@ -61,7 +66,7 @@ if (ratingsUrl || ratingsKey) {
   await writeFile('dist/data/rating-config.json', 'null\n');
 }
 await copyFile('node_modules/@simplewebauthn/browser/dist/bundle/index.umd.min.js', 'dist/webauthn.js');
-await copyFile('node_modules/fflate/esm/browser.js', 'dist/fflate.mjs');
+await writeFile('dist/data/twitch-games.json', JSON.stringify({ seconds, startedAt, updatedAt }) + '\n');
 const watchtimeSnapshot = await watchtime;
 watchtimeSnapshot.days = await publishWatchtimeHistory(process.env.WATCHTIME_HISTORY_DIR, watchtimeSnapshot.periods.global);
 await writeFile('dist/data/watchtime.json', JSON.stringify(watchtimeSnapshot) + '\n');
