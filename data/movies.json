@@ -1,5 +1,5 @@
 {
-  "revision": "b9d18b38-5e23-4be4-85bf-e42ef31e6b26",
+  "revision": "53b503d2-944a-4cdf-849f-ca95b64dd701",
   "items": [
     {
       "id": "sheet-films-order-17",
@@ -1007,25 +1007,6 @@
       "plannedOn": "",
       "plannedTime": "",
       "created": ""
-    },
-    {
-      "id": "twitch-d80098e9-ee63-456f-ad0c-e8eca0cad5f3",
-      "title": "Такси 2",
-      "viewer": "yanibox",
-      "source": "",
-      "rewardTitle": "Смотрим фильм до 3х часов",
-      "category": "",
-      "status": "queued",
-      "rating": null,
-      "poster": "",
-      "autoPoster": "",
-      "runtime": null,
-      "note": "",
-      "watchedOn": "",
-      "orderedOn": "",
-      "plannedOn": "",
-      "plannedTime": "",
-      "created": "2026-11-19T21:25:59.499305236Z"
     }
   ],
   "seen": [
