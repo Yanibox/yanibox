@@ -12,7 +12,10 @@
 <body class="showcase">
   <header class="top"><div class="wrap top-inner">
     <a class="brand" href="./"><span class="mark" aria-hidden="true"></span> Yanibox</a>
-    <a class="nav-link" href="admin.html">Панель стримера</a>
+    <div class="top-actions">
+      <a class="nav-link" href="admin.html">Панель стримера</a>
+      <button class="viewer-account" id="viewer-account" type="button" aria-haspopup="dialog" hidden>Войти через Twitch</button>
+    </div>
   </div></header>
   <main class="wrap">
     <nav class="site-tabs" aria-label="Разделы витрины">
@@ -28,11 +31,6 @@
         </div>
         <p id="summary" class="muted" aria-live="polite"></p>
       </header>
-      <div id="viewer-auth" class="viewer-auth" hidden>
-        <button id="viewer-account" type="button" hidden>Войти через Twitch</button>
-        <p class="hint">Вход нужен для голосования. Twitch передаёт Supabase данные профиля и email. Адрес не показывается на сайте.</p>
-        <p id="viewer-auth-message" class="hint" role="status"></p>
-      </div>
       <div class="filters">
         <label class="visually-hidden" for="search">Поиск фильма</label>
         <input id="search" type="search" placeholder="Поиск по названию или зрителю">
@@ -50,6 +48,14 @@
           <option value="planned">По дате плана</option>
           <option value="watched">По дате просмотра</option>
           <option value="rating">По оценке стримера</option>
+        </select>
+      </div>
+      <div class="catalog-view">
+        <label for="card-size">Размер карточек</label>
+        <select id="card-size">
+          <option value="compact">Компактные</option>
+          <option value="normal" selected>Обычные</option>
+          <option value="large">Крупные</option>
         </select>
       </div>
       <p id="catalog-message" class="muted" role="status">Загружаем список…</p>

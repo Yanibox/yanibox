@@ -1,4 +1,4 @@
-import { compareSnapshots, dateInMoscow, periodDates, shiftDays } from './watchtime-period.mjs';
+import { compareSnapshots, dateInMoscow, formatDuration, periodDates, shiftDays } from './watchtime-period.mjs';
 
 const search = document.getElementById('viewer-search');
 const period = document.getElementById('period');
@@ -24,12 +24,6 @@ let message = 'Загружаем статистику…';
 
 function showDay(day) {
   return shortDate.format(new Date(day + 'T00:00:00Z'));
-}
-
-function formatDuration(seconds) {
-  const hours = Math.floor(seconds / 3600).toLocaleString('ru-RU');
-  const minutes = Math.floor(seconds / 60) % 60;
-  return `${hours} ч ${minutes} мин ${seconds % 60} с`;
 }
 
 function render() {

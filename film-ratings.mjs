@@ -1,61 +1,11 @@
 import { element } from './core.mjs';
-
-const sessionKey = 'yanibox-viewer-session';
-const sessionStorageWithoutProviderTokens = {
-  getItem: key => localStorage.getItem(key),
-  removeItem: key => localStorage.removeItem(key),
-  setItem(key, value) {
-    if (key === sessionKey) {
-      const session = JSON.parse(value);
-      delete session.provider_token;
-      delete session.provider_refresh_token;
-      value = JSON.stringify(session);
-    }
-    localStorage.setItem(key, value);
-  }
-};
-
-async function connect() {
-  const response = await fetch(new URL('data/rating-config.json', import.meta.url));
-  if (!response.ok) return null;
-  const config = await response.json();
-  if (!config) return null;
-
-  await new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = new URL('supabase.js', import.meta.url);
-    script.onload = resolve;
-    script.onerror = reject;
-    document.head.append(script);
-  });
-  return window.supabase.createClient(config.url, config.key, {
-    auth: { flowType: 'pkce', storageKey: sessionKey, storage: sessionStorageWithoutProviderTokens }
-  });
-}
+import { onViewerSession, openViewerAccount } from './viewer-account.mjs';
 
 export function filmRatings(onChange) {
-  const panel = document.getElementById('viewer-auth');
-  const accountButton = document.getElementById('viewer-account');
-  const message = document.getElementById('viewer-auth-message');
   let client;
   let viewerId;
   let ratings;
   let loadId = 0;
-
-  async function login() {
-    message.textContent = '';
-    try {
-      const { error } = await client.auth.signInWithOAuth({
-        provider: 'twitch',
-        options: { redirectTo: new URL('films.html', location.href).href }
-      });
-      if (error) throw error;
-    } catch {
-      message.textContent = 'Не удалось начать вход через Twitch. Попробуй ещё раз.';
-      return false;
-    }
-    return true;
-  }
 
   async function loadRatings() {
     const id = ++loadId;
@@ -71,45 +21,15 @@ export function filmRatings(onChange) {
     onChange();
   }
 
-  accountButton.addEventListener('click', async () => {
-    accountButton.disabled = true;
-    if (viewerId) {
-      try {
-        const { error } = await client.auth.signOut({ scope: 'local' });
-        if (error) throw error;
-      } catch {
-        message.textContent = 'Не удалось выйти. Попробуй ещё раз.';
-      }
-    } else {
-      await login();
-    }
-    accountButton.disabled = false;
+  onViewerSession((nextClient, nextViewer) => {
+    client = nextClient;
+    viewerId = nextViewer;
+    ratings = undefined;
+    loadId++;
+    onChange();
+    // Supabase Auth holds its session lock while delivering this callback.
+    setTimeout(() => void loadRatings(), 0);
   });
-
-  async function initialize() {
-    try {
-      client = await connect();
-      if (!client) return;
-      panel.hidden = false;
-      client.auth.onAuthStateChange((event, session) => {
-        const nextViewer = session?.user.app_metadata?.provider === 'twitch' ? session.user.id : undefined;
-        if (event !== 'INITIAL_SESSION' && nextViewer === viewerId) return;
-        if (viewerId !== nextViewer) {
-          viewerId = nextViewer;
-          ratings = undefined;
-          loadId++;
-        }
-        accountButton.textContent = viewerId ? 'Выйти' : 'Войти через Twitch';
-        accountButton.hidden = false;
-        onChange();
-        // Supabase Auth holds its session lock while delivering this callback.
-        setTimeout(() => void loadRatings(), 0);
-      });
-    } catch {
-      panel.hidden = false;
-      message.textContent = 'Вход через Twitch временно недоступен.';
-    }
-  }
 
   function forMovie(item) {
     if (!client || item.status !== 'watched') return null;
@@ -125,10 +45,7 @@ export function filmRatings(onChange) {
     if (!viewerId) {
       const button = element('button', 'Войти, чтобы оценить');
       button.type = 'button';
-      button.addEventListener('click', async () => {
-        button.disabled = true;
-        if (!await login()) button.disabled = false;
-      });
+      button.addEventListener('click', openViewerAccount);
       block.append(button);
       return block;
     }
@@ -170,6 +87,5 @@ export function filmRatings(onChange) {
     return block;
   }
 
-  void initialize();
   return { forMovie };
 }

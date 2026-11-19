@@ -11,9 +11,9 @@
   border: 1px solid #ffe6f53d;
   border-radius: 32px;
   background:
-    radial-gradient(ellipse at 82% 38%, #a8627873, transparent 52%),
-    radial-gradient(ellipse at 70% 100%, #65387b9c, transparent 60%),
-    linear-gradient(130deg, #21182f, #38233b 76%, #321f36);
+    radial-gradient(ellipse at 82% 38%, #a84a5d73, transparent 52%),
+    radial-gradient(ellipse at 70% 100%, #6f213b97, transparent 60%),
+    linear-gradient(130deg, #29131b, #401925 76%, #331520);
   box-shadow: inset 0 1px 0 #ffffff26, 0 24px 65px var(--shadow);
 }
 
@@ -84,7 +84,7 @@
   backdrop-filter: blur(18px);
   box-shadow: inset 0 1px 0 var(--highlight), 0 12px 32px var(--shadow);
 }
-.home-link:is(:hover, :focus-visible) { border-color: #ffd1a485; background-color: #3b2a43; }
+.home-link:is(:hover, :focus-visible) { border-color: #ffaaa585; background-color: #48212c; }
 .home-link h3 { margin: 13px 0 5px; font-size: 1.2rem; line-height: 1.25; }
 .home-link p { color: var(--muted); }
 .home-icon {
@@ -140,6 +140,8 @@
   .home-grid { animation: .48s .12s ease-out both showcase-in; }
   .home-link { transition: transform .2s, border-color .2s, background-color .2s; }
   .home-link:is(:hover, :focus-visible) { transform: translateY(-4px); }
+  .home-icon { transition: transform .3s ease; }
+  .home-link:is(:hover, :focus-visible) .home-icon { transform: rotate(-8deg) scale(1.08); }
 }
 
 @keyframes home-float {

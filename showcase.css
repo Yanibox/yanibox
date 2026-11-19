@@ -1,27 +1,32 @@
 .showcase {
-  --bg: #100e1b;
-  --panel: #262136b5;
-  --line: #eee0ff28;
+  --bg: #160a0e;
+  --panel: #2a141bd9;
+  --line: #f7cad331;
   --ink: #fff7f5;
-  --muted: #d0c4db;
-  --accent: #ffd1a4;
+  --muted: #dfbfc6;
+  --accent: #ffaaa5;
   --purple: #c9a8ff;
-  --control: #171423d9;
-  --glow-primary: #653c8373;
-  --glow-secondary: #ad594a50;
-  --active-tab: #ffe0bb18;
-  --shadow: #08051155;
+  --control: #1d0d13;
+  --active-tab: #ffb4b51c;
+  --shadow: #09030780;
   --highlight: #ffffff14;
   --mark-ink: #331b2d;
   --gold: #ffd298;
   --silver: #e1d8ff;
   --bronze: #ffa892;
   min-height: 100vh;
-  background:
-    radial-gradient(ellipse at 88% 8%, var(--glow-secondary), transparent 49%),
-    radial-gradient(ellipse at 13% 24%, var(--glow-primary), transparent 57%),
-    var(--bg);
-  background-attachment: fixed;
+  isolation: isolate;
+  background: var(--bg);
+}
+.showcase::before {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  inset: -5%;
+  pointer-events: none;
+  background: linear-gradient(155deg, #19070b44, #1005098c),
+    url("data/cinema-wallpaper.webp") center / cover no-repeat,
+    radial-gradient(ellipse at 80% 15%, #57202a, #160a0e 72%);
 }
 
 .showcase .top {
@@ -29,6 +34,30 @@
   backdrop-filter: blur(20px);
 }
 .showcase .top-inner { min-height: 68px; }
+.top-actions { display: flex; align-items: center; gap: clamp(8px, 2.5vw, 22px); min-width: 0; }
+.top-actions .nav-link { line-height: 1.25; text-align: right; }
+.viewer-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  border-color: #f3b6e55c;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #5b3068, #3b234d);
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: .86rem;
+}
+.viewer-account::before {
+  content: "";
+  width: 15px;
+  height: 16px;
+  flex: 0 0 auto;
+  background: #f2cbff;
+  clip-path: polygon(13% 0, 100% 0, 100% 63%, 66% 85%, 42% 85%, 23% 100%, 23% 84%, 0 84%, 0 20%, 13% 0, 19% 12%, 15% 24%, 15% 70%, 36% 70%, 36% 82%, 52% 69%, 70% 69%, 86% 55%, 86% 12%, 19% 12%);
+}
+.viewer-account > span { overflow: hidden; text-overflow: ellipsis; }
+.top-actions .viewer-account { max-width: clamp(130px, 34vw, 240px); }
 .showcase .mark::after { border-left-color: var(--mark-ink); }
 .showcase .site-tabs {
   width: fit-content;
@@ -92,14 +121,63 @@
 .film-meta [data-status="planned"] { --status-color: #aecbff; }
 .film-meta [data-status="watched"] { --status-color: #a1e6bd; }
 .film-meta [data-status="skipped"] { --status-color: #ffacb5; }
-.viewer-auth {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 12px;
-  margin-bottom: 18px;
+.viewer-dialog {
+  width: min(640px, calc(100% - 24px));
+  max-height: calc(100% - 24px);
+  padding: 0;
+  color: var(--ink);
+  background: #231016;
+  border: 1px solid #ffbac44d;
+  border-radius: 25px;
+  box-shadow: 0 32px 95px #070204c9;
 }
-.viewer-auth [role="status"]:empty,
+.viewer-dialog::backdrop { background: #10070baf; backdrop-filter: blur(7px); }
+.viewer-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-height: 132px;
+  padding: 24px 60px 24px clamp(15px, 5vw, 28px);
+  background:
+    linear-gradient(100deg, #48121c66, #611a2b33),
+    url("data/cinema-wallpaper.webp") center 38% / cover,
+    #401821;
+  border-bottom: 1px solid var(--line);
+}
+.viewer-close { position: absolute; top: 11px; right: 11px; min-height: 38px; padding: 3px 12px; font-size: 1.2rem; }
+.viewer-title-group { min-width: 0; overflow-wrap: anywhere; }
+.viewer-title-group h2 { font: 500 clamp(1.45rem, 5vw, 2.2rem)/1.15 Georgia, serif; }
+.viewer-avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: clamp(52px, 12vw, 72px);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 24%;
+  border: 1px solid #ffb2b67d;
+  background: #431f2d;
+  color: var(--accent);
+  font-size: 1.4rem;
+  font-weight: 750;
+}
+.viewer-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.viewer-dialog-body { padding: clamp(15px, 5vw, 27px); }
+.viewer-guest { display: grid; gap: 12px; justify-items: start; }
+.viewer-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin: 0 0 17px; }
+.viewer-stats > div {
+  padding: 13px 11px;
+  background: linear-gradient(145deg, #4b2330, #2e151e);
+  border: 1px solid var(--line);
+  border-radius: 13px;
+}
+.viewer-stats dt { font-size: .84rem; color: var(--muted); }
+.viewer-stats dd { margin: 6px 0 1px; color: var(--accent); font-size: clamp(1rem, 2.9vw, 1.3rem); font-weight: 750; font-variant-numeric: tabular-nums; }
+.viewer-stats small { display: block; font-size: .76rem; }
+.viewer-footer { display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+.viewer-message:not(:empty) { margin-top: 12px; }
 .viewer-rating [role="status"]:empty { position: absolute; }
 .viewer-rating {
   display: grid;
@@ -114,8 +192,13 @@
   gap: 6px;
 }
 .viewer-vote select, .viewer-rating button { padding-inline: 8px; }
-.showcase .library .filters { margin-bottom: 22px; }
-.showcase .card-art { height: clamp(200px, 29vw, 275px); background-color: #171321; }
+.catalog-view { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 8px 10px; margin: 0 0 15px; }
+.catalog-view label { margin: 0; color: var(--muted); }
+.catalog-view select { width: auto; }
+.showcase .cards { grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--card-width, 240px)), 1fr)); }
+.showcase .cards[data-size="compact"] { --card-width: 185px; --poster-height: clamp(155px, 24vw, 210px); }
+.showcase .cards[data-size="large"] { --card-width: 315px; --poster-height: clamp(260px, 36vw, 360px); }
+.showcase .card-art { height: var(--poster-height, clamp(200px, 29vw, 275px)); background-color: #1d0c14; }
 .showcase .card-art img { height: 100%; min-height: 0; object-fit: contain; }
 .showcase #catalog-message:not(:empty) {
   border: 1px solid var(--line);
@@ -162,6 +245,13 @@
   .watchtime-filters > div:first-child { grid-column: 1 / -1; }
 }
 @media (max-width: 480px) {
+  .showcase .cards[data-size="compact"] { --card-width: 152px; }
+  .cards[data-size="compact"] .viewer-vote { grid-template-columns: 1fr; }
+  .viewer-stats { grid-template-columns: 1fr; }
+  .viewer-stats > div { padding-block: 8px; }
+  .viewer-stats dd { margin-block: 2px; }
+  .top-actions .nav-link { font-size: .72rem; }
+  .top-actions .viewer-account { padding-inline: 8px; font-size: .75rem; }
   .showcase .site-tabs a {
     display: grid;
     place-items: center;
@@ -177,6 +267,10 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  .showcase::before { animation: cinema-drift 38s ease-in-out infinite alternate; }
+  .viewer-dialog[open] { animation: .28s ease-out both showcase-in; }
+  .viewer-account { transition: transform .2s, box-shadow .2s; }
+  .viewer-account:is(:hover:enabled, :focus-visible) { transform: translateY(-2px); box-shadow: 0 5px 22px #bc66bf36; }
   @view-transition { navigation: auto; }
   ::view-transition-old(root) { animation: .16s ease both showcase-out; }
   ::view-transition-new(root) { animation: .28s ease-out both showcase-in; }
@@ -188,6 +282,11 @@
   .showcase .button { transition: color .18s, background-color .18s, border-color .18s, transform .24s; }
   .showcase .library-header, .showcase .watchtime > header { animation: .48s ease-out both showcase-in; }
   .showcase .card:hover, .showcase .button:hover { transform: translateY(-3px); }
+}
+
+@keyframes cinema-drift {
+  from { transform: translate(-1%, -1%) scale(1); }
+  to { transform: translate(1%, 1%) scale(1.07); }
 }
 
 @keyframes showcase-in {

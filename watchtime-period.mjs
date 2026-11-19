@@ -1,6 +1,12 @@
 const moscowDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Moscow', dateStyle: 'short' });
 export const dateInMoscow = date => moscowDate.format(date);
 
+export function formatDuration(seconds) {
+  const hours = Math.floor(seconds / 3600).toLocaleString('ru-RU');
+  const minutes = Math.floor(seconds / 60) % 60;
+  return `${hours} ч ${minutes} мин ${seconds % 60} с`;
+}
+
 function asDate(day) {
   return new Date(day + 'T00:00:00Z');
 }

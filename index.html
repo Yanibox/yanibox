@@ -5,16 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
   <meta name="description" content="Yanibox: очередь фильмов за баллы Twitch, рейтинг зрителей и канал со стримами.">
-  <meta name="theme-color" content="#100e1b">
+  <meta name="theme-color" content="#160a0e">
   <title>Yanibox · Главная</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="showcase.css">
   <link rel="stylesheet" href="home.css">
+  <script type="module" src="viewer-account.mjs"></script>
 </head>
 <body class="showcase home">
   <header class="top"><div class="wrap top-inner">
     <a class="brand" href="./" aria-current="page"><span class="mark" aria-hidden="true"></span> Yanibox</a>
-    <a class="nav-link" href="admin.html">Панель стримера</a>
+    <div class="top-actions">
+      <a class="nav-link" href="admin.html">Панель стримера</a>
+      <button class="viewer-account" id="viewer-account" type="button" aria-haspopup="dialog" hidden>Войти через Twitch</button>
+    </div>
   </div></header>
   <main class="wrap home-main">
     <section class="home-hero" aria-labelledby="home-title">

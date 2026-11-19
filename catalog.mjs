@@ -18,6 +18,18 @@ let records = {};
 let revision;
 let refreshing = false;
 const ratings = filmRatings(render);
+const cardSize = byId('card-size');
+const cardSizeKey = 'yanibox-card-size';
+
+try {
+  const saved = localStorage.getItem(cardSizeKey);
+  if ([...cardSize.options].some(option => option.value === saved)) cardSize.value = saved;
+} catch { /* The size can still be changed for this visit. */ }
+cards.dataset.size = cardSize.value;
+cardSize.addEventListener('change', () => {
+  cards.dataset.size = cardSize.value;
+  try { localStorage.setItem(cardSizeKey, cardSize.value); } catch {}
+});
 
 function compareDates(left, right, direction = 1) {
   if (!left || !right) return Number(!left) - Number(!right);

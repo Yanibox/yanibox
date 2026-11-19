@@ -8,11 +8,15 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="showcase.css">
   <script type="module" src="watchtime.mjs"></script>
+  <script type="module" src="viewer-account.mjs"></script>
 </head>
 <body class="showcase">
   <header class="top"><div class="wrap top-inner">
     <a class="brand" href="./"><span class="mark" aria-hidden="true"></span> Yanibox</a>
-    <a class="nav-link" href="admin.html">Панель стримера</a>
+    <div class="top-actions">
+      <a class="nav-link" href="admin.html">Панель стримера</a>
+      <button class="viewer-account" id="viewer-account" type="button" aria-haspopup="dialog" hidden>Войти через Twitch</button>
+    </div>
   </div></header>
   <main class="wrap">
     <nav class="site-tabs" aria-label="Разделы витрины">
