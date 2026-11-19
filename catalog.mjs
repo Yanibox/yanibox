@@ -1,4 +1,5 @@
 import { categories, element, loadCatalog, orderDateLabel, statuses, viewingDateLabel } from './core.mjs';
+import { filmRatings } from './film-ratings.mjs';
 import { loadMovieInfo, movieDetails, runtimeLabel } from './movie-info.mjs';
 
 const byId = id => document.getElementById(id);
@@ -16,6 +17,7 @@ let items = [];
 let records = {};
 let revision;
 let refreshing = false;
+const ratings = filmRatings(render);
 
 function compareDates(left, right, direction = 1) {
   if (!left || !right) return Number(!left) - Number(!right);
@@ -64,8 +66,13 @@ function card(item) {
   if (item.category) meta.append(element('span', item.category));
   if (year) meta.append(element('span', year));
   if (runtime) meta.append(element('span', runtimeLabel(runtime)));
-  if (item.rating != null) meta.append(element('span', '★ ' + item.rating.toLocaleString('ru') + ' / 10', 'rating'));
   body.append(meta, element('h3', item.title));
+  if (item.status === 'watched' || item.rating != null) {
+    const score = item.rating == null ? 'без оценки' : item.rating.toLocaleString('ru') + ' / 10';
+    body.append(element('p', 'Стример: ' + score, 'rating'));
+  }
+  const viewerRating = ratings.forMovie(item);
+  if (viewerRating) body.append(viewerRating);
   if (item.viewer) body.append(element('p', 'Заказал: ' + item.viewer, 'hint'));
   if (item.source && item.source.toLocaleLowerCase('ru') !== item.viewer.toLocaleLowerCase('ru')) {
     body.append(element('p', 'Источник: ' + item.source, 'hint'));

@@ -36,11 +36,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - if: vars.SUPABASE_URL != ''
+        run: npm ci --ignore-scripts
       - run: node scripts/build-pages.mjs
         env:
           MOVIE_CATALOG_CACHE_URL: https://yanibox.github.io/yanibox/data/movie-info.json
           WATCHTIME_CACHE_URL: https://yanibox.github.io/yanibox/data/watchtime.json
           WATCHTIME_HISTORY_DIR: .watchtime-history
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
       - name: Save daily WizeBot snapshot
         working-directory: .watchtime-history
         run: |
@@ -53,3 +57,9 @@ jobs:
           path: dist
       - uses: actions/deploy-pages@v4
         id: deploy
+      - name: Sync watched films to Supabase
+        if: vars.SUPABASE_URL != ''
+        run: node scripts/sync-film-ratings.mjs
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
