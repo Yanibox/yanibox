@@ -1,18 +1,16 @@
 .showcase {
-  --bg: #160a0e;
-  --panel: #2a141bd9;
-  --line: #f7cad331;
+  --panel: #321112c9;
+  --line: #ffc1b63d;
   --ink: #fff7f5;
   --muted: #dfbfc6;
   --accent: #ffaaa5;
-  --purple: #c9a8ff;
-  --control: #1d0d13;
+  --control: #200c0f;
   --active-tab: #ffb4b51c;
   --shadow: #09030780;
   --highlight: #ffffff14;
-  --mark-ink: #331b2d;
+  --mark-ink: #391518;
   --gold: #ffd298;
-  --silver: #e1d8ff;
+  --silver: #e7dfe0;
   --bronze: #ffa892;
 }
 
@@ -28,9 +26,9 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
-  border-color: #f3b6e55c;
+  border-color: #ffb6a759;
   border-radius: 999px;
-  background: linear-gradient(135deg, #5b3068, #3b234d);
+  background: linear-gradient(135deg, #832f2c, #492020);
   white-space: nowrap;
   overflow: hidden;
   font-size: .86rem;
@@ -40,7 +38,7 @@
   width: 15px;
   height: 16px;
   flex: 0 0 auto;
-  background: #f2cbff;
+  background: #ffe2da;
   clip-path: polygon(13% 0, 100% 0, 100% 63%, 66% 85%, 42% 85%, 23% 100%, 23% 84%, 0 84%, 0 20%, 13% 0, 19% 12%, 15% 24%, 15% 70%, 36% 70%, 36% 82%, 52% 69%, 70% 69%, 86% 55%, 86% 12%, 19% 12%);
 }
 .viewer-account > span { overflow: hidden; text-overflow: ellipsis; }
@@ -81,7 +79,7 @@
   border: 1px solid var(--line);
   border-radius: 20px;
   background:
-    radial-gradient(ellipse at 100% 0%, #93587550, transparent 70%),
+    radial-gradient(ellipse at 100% 0%, #a23b3060, transparent 70%),
     var(--panel);
   box-shadow: inset 0 1px 0 var(--highlight), 0 12px 32px var(--shadow);
 }
@@ -256,7 +254,7 @@
 @media (prefers-reduced-motion: no-preference) {
   .viewer-dialog[open] { animation: .28s ease-out both showcase-in; }
   .viewer-account { transition: transform .2s, box-shadow .2s; }
-  .viewer-account:is(:hover:enabled, :focus-visible) { transform: translateY(-2px); box-shadow: 0 5px 22px #bc66bf36; }
+  .viewer-account:is(:hover:enabled, :focus-visible) { transform: translateY(-2px); box-shadow: 0 5px 22px #dc524236; }
   @view-transition { navigation: auto; }
   ::view-transition-old(root) { animation: .16s ease both showcase-out; }
   ::view-transition-new(root) { animation: .28s ease-out both showcase-in; }

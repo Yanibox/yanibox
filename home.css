@@ -8,12 +8,11 @@
   align-items: center;
   min-height: 405px;
   overflow: hidden;
-  border: 1px solid #ffe6f53d;
+  border: 1px solid #ffd0c54a;
   border-radius: 32px;
   background:
-    radial-gradient(ellipse at 82% 38%, #a84a5d73, transparent 52%),
-    radial-gradient(ellipse at 70% 100%, #6f213b97, transparent 60%),
-    linear-gradient(130deg, #29131b, #401925 76%, #331520);
+    radial-gradient(ellipse at 82% 42%, #b32d225c, transparent 57%),
+    linear-gradient(114deg, #270d10c7, #38101169 66%, #4312139e);
   box-shadow: inset 0 1px 0 #ffffff26, 0 24px 65px var(--shadow);
 }
 
@@ -38,9 +37,9 @@
   position: absolute;
   width: min(91%, 410px);
   aspect-ratio: 2.1;
-  border: 1px solid #fce2fa50;
+  border: 1px solid #ffd0c268;
   border-radius: 50%;
-  box-shadow: 0 0 18px #eeb7ff16, inset 0 0 18px #eeb7ff16;
+  box-shadow: 0 0 18px #ff907c2b, inset 0 0 18px #ff907c26;
   rotate: -28deg;
 }
 .home-orbit-tall { width: min(95%, 435px); aspect-ratio: 1.75; rotate: 34deg; }
@@ -49,11 +48,11 @@
   place-items: center;
   width: clamp(150px, 24vw, 265px);
   aspect-ratio: 1;
-  border: 1px solid #ffe3f9a0;
+  border: 1px solid #ffc2ada0;
   border-radius: 31%;
-  background: linear-gradient(145deg, #ffd5df63, #e7b6ff17 47%, #6741827d), #50304b50;
+  background: linear-gradient(145deg, #ffb8a362, #da4d3924 47%, #6f201994), #7a201850;
   backdrop-filter: blur(12px);
-  box-shadow: inset 0 1px 2px #fff4f5a0, inset 0 0 30px #ffb5d52d, 0 24px 55px #160d25a0;
+  box-shadow: inset 0 1px 2px #fff1e8a0, inset 0 0 30px #ff9b862f, 0 24px 55px #210407a0;
   rotate: -12deg;
 }
 .home-play {
@@ -80,7 +79,7 @@
   padding: 22px;
   border: 1px solid var(--line);
   border-radius: 22px;
-  background: linear-gradient(135deg, #ffe0ff0c, transparent 66%), var(--panel);
+  background: linear-gradient(135deg, #ffe0d40c, transparent 66%), var(--panel);
   backdrop-filter: blur(18px);
   box-shadow: inset 0 1px 0 var(--highlight), 0 12px 32px var(--shadow);
 }
@@ -106,7 +105,6 @@
   border-radius: 4px;
 }
 .home-icon-film::before { border-inline-width: 5px; }
-.home-icon-time { color: var(--purple); border-color: #c9a8ff54; background: #c9a8ff19; }
 .home-icon-time::before { height: 20px; border-radius: 50%; }
 .home-icon-time::after {
   content: "";
