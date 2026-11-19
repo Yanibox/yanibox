@@ -188,13 +188,20 @@ byId('remove-poster').addEventListener('click', () => {
   queueMovieSearch();
 });
 
+function recordDate(item) {
+  const day = (item.status === 'watched' && item.watchedOn) || item.orderedOn;
+  const timestamp = Date.parse(day ? `${day}T00:00:00+03:00` : item.created);
+  return Number.isFinite(timestamp) ? timestamp : Number.MIN_SAFE_INTEGER;
+}
+
 function render() {
   renderPublish();
   if (!state) return;
   say('admin-count', `Всего: ${state.items.length}`);
   refreshPoster();
   byId('categories').replaceChildren(...categories(state.items).map(value => new Option(value, value)));
-  const rows = [...state.items].reverse().map(item => {
+  const newestFirst = [...state.items].reverse().sort((a, b) => recordDate(b) - recordDate(a));
+  const rows = newestFirst.map(item => {
     const row = element('li');
     const name = element('div');
     const details = movieDetails(item, movieRecords);
