@@ -3,6 +3,8 @@ import { checkData, uploadedPoster } from './core.mjs';
 const api = 'https://api.github.com';
 const catalogPath = 'data/movies.json';
 
+export class CatalogChanged extends Error {}
+
 function endpoint(repo) {
   if (!/^[a-z\d][a-z\d-]*\/[a-z\d_.-]+$/i.test(repo) || /\/(\.|\.\.)$/.test(repo)) {
     throw new Error('Укажи репозиторий в формате владелец/название.');
@@ -16,8 +18,10 @@ async function request(url, token, options = {}) {
   if (options.body) headers['Content-Type'] = 'application/json';
   const response = await fetch(url, { ...options, headers, cache: 'no-store', redirect: 'error' });
   if (response.ok) return response.json();
-  if (response.status === 409 || response.status === 422) throw new Error('GitHub не принял изменение. Проверь, не обновился ли файл.');
-  throw new Error(`GitHub ответил ${response.status}. Проверь репозиторий, токен и права записи.`);
+  if (response.status === 409 || response.status === 422) throw new CatalogChanged('Список снова обновился на GitHub. Черновик сохранён.');
+  const error = new Error(`GitHub ответил ${response.status}. Проверь репозиторий, токен и права записи.`);
+  error.status = response.status;
+  throw error;
 }
 
 export async function checkOwner(repo, token) {
@@ -36,6 +40,21 @@ export async function readGithub(repo, token, ref) {
   if (result.encoding !== 'base64') throw new Error('GitHub не вернул содержимое файла фильмов.');
   const bytes = Uint8Array.from(atob(result.content), char => char.charCodeAt(0));
   return { data: checkData(JSON.parse(new TextDecoder().decode(bytes))), sha: result.sha };
+}
+
+export async function findCatalogRevision(repo, token, revision) {
+  endpoint(repo);
+  for (let page = 1; page <= 3; page++) {
+    const params = new URLSearchParams({ path: catalogPath, sha: 'main', per_page: '20', page: String(page) });
+    const commits = await request(`${api}/repos/${repo}/commits?${params}`, token);
+    for (let i = 0; i < commits.length; i += 5) {
+      const versions = await Promise.all(commits.slice(i, i + 5).map(commit => readGithub(repo, token, commit.sha)));
+      const match = versions.find(version => version.data.revision === revision);
+      if (match) return match.data;
+    }
+    if (commits.length < 20) break;
+  }
+  throw new Error('Исходную версию черновика не удалось найти на GitHub. Черновик сохранён в браузере.');
 }
 
 function encodeCatalog(data) {
@@ -62,7 +81,7 @@ export async function writeGithub(repo, token, draft, posters = {}) {
   const { data, sha } = await readGithub(repo, token, head);
   if (data.revision !== draft.revision) {
     if (JSON.stringify(data) === JSON.stringify({ ...draft, revision: data.revision })) return data.revision;
-    throw new Error('На GitHub появилась другая версия списка. Черновик сохранён в этом браузере.');
+    throw new CatalogChanged('Список снова обновился на GitHub. Черновик сохранён.');
   }
   const next = { ...draft, revision: crypto.randomUUID() };
   const content = encodeCatalog(next);
@@ -82,6 +101,8 @@ export async function writeGithub(repo, token, draft, posters = {}) {
       })
     });
     if (!result.data?.createCommitOnBranch?.commit?.oid) {
+      const currentHead = (await request(`${api}/repos/${repo}/git/ref/heads/main`, token)).object.sha;
+      if (currentHead !== head) throw new CatalogChanged('Список снова обновился на GitHub. Черновик сохранён.');
       const reason = result.errors?.[0]?.message;
       throw new Error(`GitHub не сохранил фильм с постером. ${reason || 'Повтори публикацию.'}`);
     }

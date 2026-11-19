@@ -76,6 +76,37 @@ export function addRedemption(state, event) {
   return { ...state, items: [...state.items, item], seen: [...state.seen, event.id] };
 }
 
+export function mergeCatalog(base, draft, latest) {
+  const entries = data => new Map(data.items.map(item => [item.id, item]));
+  const original = entries(base);
+  const local = entries(draft);
+  const remote = entries(latest);
+  const publishedOrders = new Set(latest.seen);
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const items = [];
+  for (const id of new Set([...remote.keys(), ...local.keys()])) {
+    const before = original.get(id);
+    const ours = local.get(id);
+    const theirs = remote.get(id);
+    if (!before && !theirs && id.startsWith('twitch-') && publishedOrders.has(id.slice(7))) continue;
+    let merged;
+    if (same(ours, before)) merged = theirs;
+    else if (same(theirs, before) || same(ours, theirs)) merged = ours;
+    else {
+      const conflict = () => new Error(`«${(ours || theirs).title}» изменён и в черновике, и на GitHub. Черновик сохранён.`);
+      if (!before || !ours || !theirs) throw conflict();
+      merged = { ...theirs };
+      for (const key of Object.keys(ours)) {
+        if (ours[key] === before[key]) continue;
+        if (theirs[key] !== before[key] && theirs[key] !== ours[key]) throw conflict();
+        merged[key] = ours[key];
+      }
+    }
+    if (merged) items.push(merged);
+  }
+  return { revision: latest.revision, items, seen: [...new Set([...latest.seen, ...draft.seen])] };
+}
+
 export function checkData(value) {
   if (!value || typeof value.revision !== 'string' || !Array.isArray(value.items) ||
       !Array.isArray(value.seen) || value.seen.some(id => typeof id !== 'string') ||

@@ -1,8 +1,8 @@
 import {
-  addRedemption, categories, checkData, element, film, loadCatalog, orderDateLabel, posterUrl,
+  addRedemption, categories, checkData, element, film, loadCatalog, mergeCatalog, orderDateLabel, posterUrl,
   statuses, uploadedPoster, viewingDate, viewingDateLabel
-} from './core.mjs';
-import { checkOwner, readGithub, writeGithub } from './github.mjs?v=afterchat';
+} from './core.mjs?v=catalog-sync';
+import { CatalogChanged, checkOwner, findCatalogRevision, readGithub, writeGithub } from './github.mjs?v=catalog-sync';
 import { findMovieInfo, loadMovieInfo, movieDetails, movieKey, runtimeLabel } from './movie-info.mjs';
 import { beginLogin, finishLogin, getRewards, listen, redirectUri, validate } from './twitch.mjs';
 
@@ -24,6 +24,8 @@ const autoKey = namespace + ':auto-publish';
 let githubToken = '';
 let twitchCallback;
 let state;
+let baseData;
+let knownPublished;
 let dirty = false;
 let editing = '';
 let uploads = {};
@@ -52,23 +54,26 @@ const lock = (name, action) => navigator.locks
 function readLocal() {
   const saved = localStorage.getItem(draftKey);
   if (!saved) return;
-  const { data, changed, posters = {} } = JSON.parse(saved);
+  const { data, changed, posters = {}, base } = JSON.parse(saved);
   state = checkData(data);
   dirty = Boolean(changed);
+  baseData = dirty ? (base?.revision === state.revision ? checkData(base) : undefined) : state;
   uploads = posters;
 }
 
-function saveLocal(data, changed, posters = uploads) {
+function saveLocal(data, changed, posters = uploads, base = baseData) {
   const used = new Set(data.items.map(item => item.poster));
   const pending = Object.fromEntries(Object.entries(posters).filter(([path]) => used.has(path)));
   try {
-    localStorage.setItem(draftKey, JSON.stringify({ data, changed, posters: pending }));
+    localStorage.setItem(draftKey, JSON.stringify({ data, changed, posters: pending, base: changed ? base : undefined }));
   } catch (error) {
     if (error.name === 'QuotaExceededError') throw new Error('В браузере не хватило места. Опубликуй предыдущие черновики с постерами и попробуй снова.');
     throw error;
   }
   state = data;
   dirty = changed;
+  baseData = changed ? base : data;
+  if (!changed) knownPublished = data;
   uploads = pending;
   render();
 }
@@ -325,22 +330,53 @@ function publish(target = 'publish-message') {
   if (!githubToken || busy) return;
   autoPending = false;
   return sync(async credential => {
-    const snapshot = await lock('draft', () => {
-      readLocal();
-      return dirty ? { data: state, posters: uploads } : null;
-    });
-    if (!snapshot) return;
-    const original = JSON.stringify(snapshot.data);
     say(target, 'Черновик сохранён. Отправляем изменения на GitHub…');
-    const revision = await writeGithub(repo, credential, snapshot.data, snapshot.posters);
-    await lock('draft', () => {
-      readLocal();
-      const remaining = Object.fromEntries(Object.entries(uploads).filter(([path]) => !Object.hasOwn(snapshot.posters, path)));
-      saveLocal({ ...state, revision }, JSON.stringify(state) !== original, remaining);
-    });
-    say(target, 'Сохранено на GitHub. Ждём обновления витрины…');
-    void waitForCatalog(revision, target, ++visibilityCheck);
+    for (let attempt = 0; ; attempt++) {
+      try {
+        const snapshot = await draftForPublishing(credential);
+        if (!snapshot) {
+          say(target, 'Список уже сохранён на GitHub.');
+          return;
+        }
+        const revision = await writeGithub(repo, credential, snapshot.data, snapshot.posters);
+        const published = { ...snapshot.data, revision };
+        await lock('draft', () => {
+          readLocal();
+          const remaining = Object.fromEntries(Object.entries(uploads).filter(([path]) => !Object.hasOwn(snapshot.posters, path)));
+          saveLocal({ ...state, revision }, JSON.stringify(state) !== JSON.stringify(snapshot.data), remaining, published);
+          knownPublished = published;
+        });
+        say(target, 'Сохранено на GitHub. Ждём обновления витрины…');
+        void waitForCatalog(revision, target, ++visibilityCheck);
+        return;
+      } catch (error) {
+        if (attempt >= 2 || !(error instanceof CatalogChanged || error instanceof TypeError || error.status >= 500)) throw error;
+        say(target, 'Повторяем синхронизацию с GitHub…');
+        await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+      }
+    }
   }, target);
+}
+
+async function draftForPublishing(credential) {
+  const local = await lock('draft', () => {
+    readLocal();
+    return dirty ? { revision: state.revision, base: baseData } : null;
+  });
+  if (!local) return null;
+  const { data: latest } = await readGithub(repo, credential);
+  const base = latest.revision === local.revision ? latest :
+    local.base ?? await findCatalogRevision(repo, credential, local.revision);
+  return lock('draft', () => {
+    readLocal();
+    if (!dirty) return null;
+    if (state.revision !== local.revision) throw new CatalogChanged('Черновик обновился. Повтори синхронизацию.');
+    const merged = mergeCatalog(base, state, latest);
+    const changed = JSON.stringify(merged) !== JSON.stringify(latest);
+    saveLocal(merged, changed, uploads, latest);
+    knownPublished = latest;
+    return changed ? { data: state, posters: uploads } : null;
+  });
 }
 
 async function waitForCatalog(revision, target, check) {
@@ -369,7 +405,15 @@ function schedulePublish() {
 }
 
 byId('publish').addEventListener('click', () => publish());
-auto.addEventListener('change', () => localStorage.setItem(autoKey, String(auto.checked)));
+function hasPendingOrders() {
+  const base = baseData ?? knownPublished;
+  return dirty && base && state.seen.some(id => !base.seen.includes(id));
+}
+
+auto.addEventListener('change', () => {
+  localStorage.setItem(autoKey, String(auto.checked));
+  if (auto.checked && hasPendingOrders()) schedulePublish();
+});
 byId('reload').addEventListener('click', () => sync(async credential => {
   const original = localStorage.getItem(draftKey);
   const { data } = await readGithub(repo, credential);
@@ -545,12 +589,14 @@ byId('login-form').addEventListener('submit', async event => {
       if (!dirty) saveLocal(data, false);
     });
     githubToken = credential;
-    auto.checked = localStorage.getItem(autoKey) === 'true';
+    knownPublished = data;
+    auto.checked = localStorage.getItem(autoKey) !== 'false';
     byId('login').hidden = true;
     byId('workspace').hidden = false;
     byId('workspace').inert = false;
     byId('logout').focus();
     render();
+    if (auto.checked && hasPendingOrders()) schedulePublish();
     void loadMovieInfo().then(records => {
       for (const [key, record] of Object.entries(records)) if (!Object.hasOwn(movieRecords, key)) movieRecords[key] = record;
       if (githubToken) render();

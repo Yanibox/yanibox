@@ -8,7 +8,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' https: data:; connect-src 'self' https://www.wikidata.org https://api.github.com https://api.twitch.tv https://id.twitch.tv wss://eventsub.wss.twitch.tv; base-uri 'none'; form-action 'none'">
   <title>Панель стримера · Afterchat</title>
   <link rel="stylesheet" href="style.css?v=smooth-wallpaper">
-  <script type="module" src="admin.mjs?v=afterchat"></script>
+  <script type="module" src="admin.mjs?v=catalog-sync"></script>
 </head>
 <body>
   <header class="top"><div class="wrap top-inner">
@@ -46,9 +46,9 @@
       </section>
       <section class="panel" aria-labelledby="github-title">
         <div class="panel-head"><h2 id="github-title">Публикация</h2><span class="pill" id="github-state" role="status">Черновик</span></div>
-        <p class="muted">При публикации весь список, включая сохранённые черновики, станет виден посетителям сайта.</p>
+        <p class="muted">Перед публикацией панель сама подтягивает изменения с GitHub. Сохранённые черновики тоже публикуются.</p>
         <label class="checkbox"><input id="auto-publish" type="checkbox"> Автоматически публиковать заказы Twitch</label>
-        <div class="form-line"><button id="publish" class="primary" type="button" disabled>Опубликовать</button><button id="reload" type="button">Загрузить с GitHub</button></div>
+        <div class="form-line"><button id="publish" class="primary" type="button" disabled>Опубликовать</button><button id="reload" type="button">Загрузить версию с GitHub</button></div>
         <p id="publish-message" class="hint" role="status"></p>
       </section>
     </div>
