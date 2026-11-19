@@ -19,15 +19,6 @@ h2{font-size:clamp(1.4rem,2.5vw,2rem);line-height:1.2}
 .nav-link:hover{color:var(--accent)}
 .mark{width:25px;height:25px;display:grid;place-items:center;background:var(--accent);border-radius:7px}
 .mark::after{content:"";border-block:5px solid transparent;border-left:8px solid var(--bg);margin-left:2px}
-.hero{margin-top:32px;isolation:isolate;position:relative;overflow:hidden;min-height:465px;border:1px solid #56445c;border-radius:26px;background:radial-gradient(ellipse at 78% 65%,#4c2943,transparent 64%),linear-gradient(120deg,#261e32,#32213c);display:flex;align-items:center}
-.hero-content{padding:clamp(24px,6vw,76px);z-index:1}
-.eyebrow{font-weight:800;letter-spacing:.19em;text-transform:uppercase;color:var(--accent);font-size:.75rem;margin-bottom:24px}
-.hero h1{font-family:Georgia,serif;font-size:clamp(3.15rem,8.3vw,7.25rem);letter-spacing:-.075em;line-height:.91;font-weight:500}
-.hero h1 em{color:var(--accent);font-weight:500}
-.hero-description{max-width:340px;color:#e2d3e2;margin:24px 0}
-.hero-art{position:absolute;inset:0 0 0 44%;display:grid;place-items:center;pointer-events:none}
-.disc{width:min(37vw,410px);aspect-ratio:1;border-radius:50%;transform:rotate(-20deg);display:grid;place-items:center;background:repeating-radial-gradient(circle,#0000 0 6px,#08050b55 7px 8px),conic-gradient(from 25deg,#50254b,#bb6b82,#ecaa86,#442644,#14101d,#634980,#aa72be,#50254b);border:1px solid #dfafc5a0;box-shadow:0 24px 80px #12091bb3}
-.disc>div{width:37%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#24152c 0 8%,#edb293 9% 14%,#cf788e 15% 47%,#c56f85 48% 52%,#e39590 53%);border:1px solid #f5bfad}
 .library,.admin{padding-block:36px 60px}
 .section-head,.panel-head,.form-line{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .section-head,.panel-head{justify-content:space-between;margin-bottom:16px}
@@ -87,5 +78,5 @@ button:disabled{opacity:.48;cursor:default}
 .watchtime-table th:last-child,.watchtime-table td:last-child{text-align:right;white-space:nowrap}
 .watchtime-table tr:last-child td{border-bottom:0}
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-@media(max-width:700px){.hero{min-height:420px}.hero-art{inset:0 -26% 0 27%;opacity:.42;justify-items:end}.disc{width:min(70vw,460px)}.filters,.setup,.editor{grid-template-columns:1fr 1fr}.filters input{grid-column:span 2}.setup{grid-template-columns:1fr}}
+@media(max-width:700px){.filters,.setup,.editor{grid-template-columns:1fr 1fr}.filters input{grid-column:span 2}.setup{grid-template-columns:1fr}}
 @media(max-width:400px){.wrap{width:calc(100% - 24px)}.editor .wide,.editor .form-line,.editor>p{grid-column:1/-1}.watchtime-filters{grid-template-columns:1fr}.watchtime-table th,.watchtime-table td{padding-inline:4px}}

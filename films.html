@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <title>Фильмы · Yanibox</title>
+  <title>Заказы кинотеатра Twitch · Yanibox</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="showcase.css">
   <script type="module" src="catalog.mjs"></script>
@@ -17,20 +17,17 @@
   <main class="wrap">
     <nav class="site-tabs" aria-label="Разделы витрины">
       <a href="./">Главная</a>
-      <a href="films.html" aria-current="page">Фильмы</a>
+      <a href="films.html" aria-current="page">Заказы кинотеатра Twitch</a>
       <a href="watchtime.html">Время просмотра</a>
     </nav>
-    <section class="hero">
-      <div class="hero-content">
-        <p class="eyebrow">Фильмы за баллы Twitch</p>
-        <h1>Что смотрим<br><em>дальше?</em></h1>
-        <p class="hero-description">Зрители предлагают фильмы за баллы канала. Здесь собраны очередь и оценки после просмотра.</p>
-        <a class="button primary" href="#films">К списку фильмов ↓</a>
-      </div>
-      <div class="hero-art" aria-hidden="true"><div class="disc"><div></div></div></div>
-    </section>
     <section id="films" class="library" aria-labelledby="list-title">
-      <div class="section-head"><h2 id="list-title">Фильмы</h2><p id="summary" class="muted" aria-live="polite"></p></div>
+      <header class="library-header">
+        <div>
+          <h1 id="list-title">Заказы <em>кинотеатра Twitch</em></h1>
+          <p class="muted">Очередь заказов и оценки после просмотра</p>
+        </div>
+        <p id="summary" class="muted" aria-live="polite"></p>
+      </header>
       <div class="filters">
         <label class="visually-hidden" for="search">Поиск фильма</label>
         <input id="search" type="search" placeholder="Поиск по названию или зрителю">

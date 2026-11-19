@@ -58,7 +58,9 @@ function card(item) {
 
   const body = element('div', null, 'card-body');
   const meta = element('div', null, 'film-meta');
-  meta.append(element('span', statuses[item.status], 'pill'));
+  const badge = element('span', statuses[item.status], 'pill');
+  badge.dataset.status = item.status;
+  meta.append(badge);
   if (item.category) meta.append(element('span', item.category));
   if (year) meta.append(element('span', year));
   if (runtime) meta.append(element('span', runtimeLabel(runtime)));
