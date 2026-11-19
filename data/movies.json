@@ -1,5 +1,5 @@
 {
-  "revision": "a2863089-3d47-4a65-a756-ae75bb0dcbf7",
+  "revision": "d70a89e9-fbdf-4719-be02-6dbb05116d6c",
   "items": [
     {
       "id": "sheet-films-order-17",
@@ -136,7 +136,7 @@
     },
     {
       "id": "sheet-films-history-11",
-      "title": "Ворон (1994)",
+      "title": "Ворон (2024)",
       "viewer": "Лиза Кути",
       "source": "Лиза",
       "rewardTitle": "Баллы",
@@ -144,7 +144,7 @@
       "status": "watched",
       "rating": 7,
       "poster": "",
-      "autoPoster": "https://st.kp.yandex.net/images/film_big/12362.jpg",
+      "autoPoster": "https://st.kp.yandex.net/images/film_big/441406.jpg",
       "runtime": 102,
       "note": "",
       "watchedOn": "2026-10-23",
