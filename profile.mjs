@@ -70,6 +70,14 @@ function closeCode() {
   get('command').textContent = '';
 }
 
+function showTwitchAccount(name, login) {
+  const label = part('.viewer-handle');
+  label.hidden = !login;
+  label.textContent = !login ? '' : name.toLowerCase() === login.toLowerCase()
+    ? 'Twitch привязан'
+    : 'Twitch · @' + login;
+}
+
 async function showProfile(profile, refresh = true) {
   view?.abort();
   const { signal } = (view = new AbortController());
@@ -80,7 +88,7 @@ async function showProfile(profile, refresh = true) {
     return;
   }
   part('.viewer-name').textContent = profile.name;
-  part('.viewer-handle').textContent = profile.twitch ? '@' + profile.twitch : '';
+  showTwitchAccount(profile.name, profile.twitch);
   get('legacy-upgrade').hidden = !profile.needsPassword;
   get('link-section').hidden = Boolean(profile.twitch);
   get('unlink').hidden = !profile.twitch;
@@ -97,7 +105,7 @@ async function showProfile(profile, refresh = true) {
       await reload();
       return;
     }
-    part('.viewer-handle').textContent = '@' + login;
+    showTwitchAccount(profile.name, login);
   }
   void loadStats(login, signal);
 }
