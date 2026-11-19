@@ -1,5 +1,5 @@
 {
-  "revision": "d70a89e9-fbdf-4719-be02-6dbb05116d6c",
+  "revision": "e43407fd-d3be-42c5-b6c1-b31e2d957396",
   "items": [
     {
       "id": "sheet-films-order-17",
@@ -991,7 +991,7 @@
     },
     {
       "id": "sheet-films-order-11",
-      "title": "Джон Уик (2014)",
+      "title": "Джон Уик 4",
       "viewer": "Лиза",
       "source": "",
       "rewardTitle": "Баллы",
@@ -999,7 +999,7 @@
       "status": "watched",
       "rating": null,
       "poster": "",
-      "autoPoster": "https://st.kp.yandex.net/images/film_big/762738.jpg",
+      "autoPoster": "https://st.kp.yandex.net/images/film_big/1267348.jpg",
       "runtime": 101,
       "note": "В таблице заказ записан как «Джон Уик, Огромный член».",
       "watchedOn": "",
