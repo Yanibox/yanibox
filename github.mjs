@@ -23,7 +23,7 @@ async function request(url, token, options = {}) {
 export async function checkOwner(repo, token) {
   const user = await request('https://api.github.com/user', token);
   if (user.login?.toLowerCase() !== repo.split('/')[0].toLowerCase()) {
-    throw new Error('Вход доступен только аккаунту Yanibox.');
+    throw new Error('Вход доступен только владельцу репозитория сайта.');
   }
   const repository = await request('https://api.github.com/repos/' + repo, token);
   if (!repository.permissions?.push) throw new Error('В токене нужен доступ на запись в репозиторий сайта.');

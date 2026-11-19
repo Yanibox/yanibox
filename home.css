@@ -18,7 +18,7 @@
 
 .home-intro { z-index: 1; padding: clamp(26px, 6vw, 74px); }
 .home-intro h1 {
-  font: 500 clamp(3.75rem, 11vw, 9rem)/.86 Georgia, serif;
+  font: 500 clamp(3.05rem, 9.25vw, 7rem)/.9 Georgia, serif;
   letter-spacing: -.085em;
 }
 .home-intro h1 span { color: var(--accent); }

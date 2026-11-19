@@ -2,7 +2,7 @@ import {
   addRedemption, categories, checkData, element, film, loadCatalog, orderDateLabel, posterUrl,
   statuses, uploadedPoster, viewingDate, viewingDateLabel
 } from './core.mjs';
-import { checkOwner, readGithub, writeGithub } from './github.mjs';
+import { checkOwner, readGithub, writeGithub } from './github.mjs?v=afterchat';
 import { findMovieInfo, loadMovieInfo, movieDetails, movieKey, runtimeLabel } from './movie-info.mjs';
 import { beginLogin, finishLogin, getRewards, listen, redirectUri, validate } from './twitch.mjs';
 

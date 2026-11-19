@@ -252,7 +252,7 @@ click('unlink', async () => {
   await reload();
 });
 click('delete', async () => {
-  if (!confirm('Удалить профиль Yanibox и твои оценки фильмов?')) return;
+  if (!confirm('Удалить профиль Afterchat и твои оценки фильмов?')) return;
   await viewerRequest('delete');
   setSession(null);
   await showProfile(null);

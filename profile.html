@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
-  <title>Профиль · Yanibox</title>
+  <title>Профиль · Afterchat</title>
   <link rel="stylesheet" href="style.css?v=smooth-wallpaper">
   <link rel="stylesheet" href="showcase.css?v=profile">
-  <script type="module" src="profile.mjs?v=password"></script>
+  <script type="module" src="profile.mjs?v=afterchat"></script>
 </head>
 <body class="showcase">
   <header class="top"><div class="wrap top-inner">
-    <a class="brand" href="./"><span class="mark" aria-hidden="true"></span> Yanibox</a>
+    <a class="brand" href="./"><span class="mark" aria-hidden="true"></span> Afterchat</a>
     <a class="nav-link" href="admin.html">Панель стримера</a>
   </div></header>
   <main class="wrap">
@@ -31,10 +31,10 @@
       <div class="panel viewer-guest" hidden>
         <h2 id="viewer-auth-title">Регистрация</h2>
         <form id="viewer-register" method="post">
-          <label for="viewer-name">Логин на Yanibox</label>
+          <label for="viewer-name">Логин на Afterchat</label>
           <input id="viewer-name" name="login" required minlength="3" maxlength="24" autocomplete="username" spellcheck="false" autocapitalize="none" aria-describedby="viewer-login-hint">
           <p class="hint" id="viewer-login-hint">От 3 до 24 символов. Русские или латинские буквы, цифры и подчёркивание.</p>
-          <label for="viewer-password">Пароль для Yanibox</label>
+          <label for="viewer-password">Пароль для Afterchat</label>
           <input id="viewer-password" name="password" type="password" required minlength="12" maxlength="128" autocomplete="new-password" aria-describedby="viewer-password-hint">
           <p class="hint" id="viewer-password-hint">Минимум 12 символов.</p>
           <button class="primary" type="submit">Зарегистрироваться</button>
@@ -56,7 +56,7 @@
           <form id="viewer-recover" method="post">
             <label for="viewer-recovery">Или введи старый код восстановления</label>
             <input id="viewer-recovery" name="recovery" required maxlength="40" autocomplete="off" spellcheck="false">
-            <label for="viewer-recover-login">Логин на Yanibox</label>
+            <label for="viewer-recover-login">Логин на Afterchat</label>
             <input id="viewer-recover-login" name="login" required minlength="3" maxlength="24" autocomplete="username" spellcheck="false" autocapitalize="none">
             <label for="viewer-recover-password">Новый пароль</label>
             <input id="viewer-recover-password" name="password" type="password" required minlength="12" maxlength="128" autocomplete="new-password">
@@ -68,7 +68,7 @@
         <section id="viewer-legacy-upgrade" class="panel viewer-guest" aria-labelledby="viewer-upgrade-title" hidden>
           <h2 id="viewer-upgrade-title">Настрой вход с паролем</h2>
           <form id="viewer-upgrade" method="post">
-            <label for="viewer-upgrade-login">Логин на Yanibox</label>
+            <label for="viewer-upgrade-login">Логин на Afterchat</label>
             <input id="viewer-upgrade-login" name="login" required minlength="3" maxlength="24" autocomplete="username" spellcheck="false" autocapitalize="none">
             <label for="viewer-upgrade-password">Пароль</label>
             <input id="viewer-upgrade-password" name="password" type="password" required minlength="12" maxlength="128" autocomplete="new-password">
@@ -84,12 +84,12 @@
             <button class="primary" type="submit">Получить код</button>
           </form>
           <div id="viewer-link-code" class="viewer-guest" hidden>
-            <p>Отправь эту команду со своего аккаунта в <a class="viewer-text-link" href="https://www.twitch.tv/yanibox/chat" target="_blank" rel="noopener">чат Yanibox</a>. Код действует пять минут.</p>
+            <p>Отправь эту команду со своего аккаунта в <a class="viewer-text-link" href="https://www.twitch.tv/yanibox/chat" target="_blank" rel="noopener">чат канала на Twitch</a>. Код действует пять минут.</p>
             <code id="viewer-command"></code>
             <button id="viewer-copy-command" type="button">Скопировать команду</button>
           </div>
         </section>
-        <dl class="viewer-stats" aria-label="Статистика на канале Yanibox" hidden>
+        <dl class="viewer-stats" aria-label="Статистика на канале Twitch" hidden>
           <div class="panel"><dt>Время просмотра</dt><dd data-stat="time">—</dd><dd class="hint" data-detail="time"></dd></div>
           <div class="panel"><dt>Сообщения в чате</dt><dd data-stat="messages">—</dd><dd class="hint" data-detail="messages"></dd></div>
           <div class="panel"><dt>Смайлы Twitch</dt><dd data-stat="emotes">—</dd><dd class="hint" data-detail="emotes"></dd></div>
@@ -109,8 +109,8 @@
       </div>
       <p class="hint viewer-message" role="status">Проверяем вход…</p>
       <details class="viewer-settings panel">
-        <summary>Что хранит Yanibox</summary>
-        <p>Логин Yanibox и хеш пароля. После привязки сохраняются ID и логин Twitch, оценки фильмов и счётчик смайлов канала. Для регистрации email и пароль Twitch не нужны. Команду привязки бот обрабатывает без сохранения текста.</p>
+        <summary>Что хранит Afterchat</summary>
+        <p>Логин Afterchat и хеш пароля. После привязки сохраняются ID и логин Twitch, оценки фильмов и счётчик смайлов канала. Для регистрации email и пароль Twitch не нужны. Команду привязки бот обрабатывает без сохранения текста.</p>
         <p>При отвязке удаляются связь с профилем и оценки. Публичный рейтинг WizeBot и общий счётчик смайлов канала ведутся отдельно.</p>
       </details>
       <noscript><style>.viewer-message { display: none }</style><p>Для входа в профиль включи JavaScript.</p></noscript>

@@ -6,19 +6,19 @@
   <meta name="referrer" content="no-referrer">
   <meta name="robots" content="noindex">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' https: data:; connect-src 'self' https://www.wikidata.org https://api.github.com https://api.twitch.tv https://id.twitch.tv wss://eventsub.wss.twitch.tv; base-uri 'none'; form-action 'none'">
-  <title>Панель стримера · Yanibox</title>
+  <title>Панель стримера · Afterchat</title>
   <link rel="stylesheet" href="style.css?v=smooth-wallpaper">
-  <script type="module" src="admin.mjs"></script>
+  <script type="module" src="admin.mjs?v=afterchat"></script>
 </head>
 <body>
   <header class="top"><div class="wrap top-inner">
-    <a class="brand" href="./"><span class="mark" aria-hidden="true"></span> Yanibox</a>
+    <a class="brand" href="./"><span class="mark" aria-hidden="true"></span> Afterchat</a>
     <a class="nav-link" href="films.html">Открыть витрину ↗</a>
   </div></header>
   <main class="wrap admin">
     <section id="login" class="panel login" aria-labelledby="login-title">
       <h1 id="login-title">Вход в панель стримера</h1>
-      <p class="muted">Введи токен аккаунта Yanibox с правом записи в репозиторий сайта.</p>
+      <p class="muted">Введи токен владельца репозитория сайта с правом записи.</p>
       <form id="login-form">
         <label>Токен GitHub<input id="github-token" type="password" autocomplete="off" spellcheck="false" placeholder="Fine-grained personal access token" required></label>
         <div class="form-line"><button id="login-button" class="primary" type="submit">Войти</button></div>
