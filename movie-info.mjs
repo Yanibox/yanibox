@@ -23,14 +23,19 @@ export function movieKey(title) {
   return name ? `${name}|${year}` : '';
 }
 
-export const runtimeLabel = value => value ? `${value} мин` : '';
+export function runtimeLabel(value) {
+  if (!value) return '';
+  const hours = Math.floor(value / 60);
+  const minutes = value % 60;
+  return [hours && `${hours} ч`, minutes && `${minutes} мин`].filter(Boolean).join(' ');
+}
 
 export function movieDetails(item, records) {
   const match = records[movieKey(item.title)]?.info;
   return {
     poster: item.poster || item.autoPoster || posterUrl(match?.poster),
     runtime: item.runtime || minutes(match?.runtime),
-    year: /^\d{4}$/.test(match?.year) ? match.year : ''
+    year: /^\d{4}$/.test(match?.year) ? match.year : splitTitle(item.title).year
   };
 }
 

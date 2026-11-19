@@ -20,6 +20,7 @@
 .showcase .top-inner { min-height: 68px; }
 .showcase .mark::after { border-left-color: var(--mark-ink); }
 .showcase .site-tabs {
+  flex-wrap: wrap;
   width: fit-content;
   max-width: 100%;
   gap: 4px;
@@ -100,33 +101,75 @@
 .viewer-settings p, .viewer-settings .viewer-actions { margin-top: 8px; }
 #viewer-profile summary { cursor: pointer; }
 .viewer-message:not(:empty) { margin-block: 12px; }
-.viewer-rating [role="status"]:empty { position: absolute; }
 .viewer-rating {
-  display: grid;
-  gap: 6px;
+  display: flex;
+  gap: 4px 8px;
+  align-items: center;
+  flex-wrap: wrap;
   color: #aecbff;
-  font-size: .86rem;
+  font-size: .79rem;
 }
-.viewer-rating .button { justify-self: start; }
-.viewer-vote {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 6px;
-}
-.viewer-vote select, .viewer-rating :is(button, .button) { padding-inline: 8px; }
 .catalog-view { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 8px 10px; margin: 0 0 15px; }
 .catalog-view label { margin: 0; color: var(--muted); }
 .catalog-view select { width: auto; }
-.showcase .cards { grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--card-width, 240px)), 1fr)); }
-.showcase .cards[data-size="compact"] { --card-width: 185px; --poster-height: clamp(155px, 24vw, 210px); }
+.showcase .cards { align-items: start; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--card-width, 225px)), 1fr)); }
+.showcase .cards[data-size="compact"] { --card-width: 195px; --poster-height: clamp(183px, 24vw, 238px); }
 .showcase .cards[data-size="large"] { --card-width: 315px; --poster-height: clamp(260px, 36vw, 360px); }
-.showcase .card-art { height: var(--poster-height, clamp(200px, 29vw, 275px)); background-color: #1d0c14; }
-.showcase .card-art img { height: 100%; min-height: 0; object-fit: contain; }
+.showcase .card-art {
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  height: var(--poster-height, clamp(220px, 29vw, 280px));
+  background: radial-gradient(ellipse at 50% 35%, #50303c, #1c1118 78%);
+}
+.showcase .card-art img { display: block; height: 100%; min-height: 0; object-fit: contain; }
+.showcase .card-art > * { grid-area: 1 / 1; }
+.showcase .card-art span { opacity: .5; }
+.showcase .card-body { gap: 7px; padding: 10px 11px 12px; line-height: 1.35; }
+.showcase .card-body h3 { font-size: clamp(.97rem, 1.5vw, 1.12rem); font-weight: 750; line-height: 1.23; }
+.card-badges { gap: 4px; }
+.showcase .card-badges .pill { font-size: .71rem; padding: 3px 7px; line-height: 1.22; }
+.showcase .card-badges [data-source="twitch"] { --status-color: #dbc0ff; background: #6639a078; }
+.card-facts { gap: 3px 7px; font-size: .76rem; }
+.card-facts span + span::before { content: '·'; padding-right: 7px; }
+.card-order { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 7px; color: var(--muted); font-size: .79rem; }
+.card-order strong { color: var(--ink); font-weight: 650; }
+.card-order time { font-variant-numeric: tabular-nums; }
+.card-scores { display: grid; gap: 3px; padding-top: 6px; border-top: 1px solid var(--line); }
+.card-scores .rating { font-size: .79rem; }
+.viewer-rating :is(button, .button), .quiet-button {
+  width: fit-content;
+  min-height: 30px;
+  padding: 3px 7px;
+  font-size: .76rem;
+}
+.owner-plan { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 125px), 1fr)); gap: 8px; }
 .showcase #catalog-message:not(:empty) {
   border: 1px solid var(--line);
   background: var(--panel);
   border-radius: 14px;
   padding: 14px 16px;
+}
+
+.schedule-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.schedule-event {
+  display: grid;
+  grid-template-columns: minmax(155px, .4fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 8px 20px;
+  padding: clamp(13px, 2.4vw, 22px);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+}
+.schedule-event time { color: #e1c7ff; font-size: .92rem; font-variant-numeric: tabular-nums; }
+.schedule-event h2 { font-size: clamp(1.1rem, 3vw, 1.5rem); overflow-wrap: anywhere; }
+.schedule-event-body { display: grid; gap: 5px; justify-items: start; overflow-wrap: anywhere; }
+.schedule-next { border-color: #c392ff8a; background: radial-gradient(ellipse at top left, #5e3c79a6, transparent 85%), var(--panel); }
+#google-schedule { margin-top: 18px; }
+#calendar-frame { width: 100%; min-height: 500px; margin-top: 12px; border: 0; border-radius: 12px; background: #fff; }
+@media (max-width: 480px) {
+  .schedule-event { grid-template-columns: 1fr; }
 }
 
 .showcase .watchtime { max-width: 100%; }
@@ -167,8 +210,7 @@
   .watchtime-filters > div:first-child { grid-column: 1 / -1; }
 }
 @media (max-width: 480px) {
-  .showcase .cards[data-size="compact"] { --card-width: 152px; }
-  .cards[data-size="compact"] .viewer-vote { grid-template-columns: 1fr; }
+  .showcase .cards[data-size="compact"] { --card-width: 145px; }
   .viewer-stats { grid-template-columns: 1fr; }
   .viewer-stats > div { padding-block: 8px; }
   .viewer-stats dd { margin-block: 2px; }
@@ -179,11 +221,13 @@
     font-size: .82rem;
     text-align: center;
   }
+  .showcase .site-tabs { display: grid; width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); border-radius: 16px; }
+  .catalog-view { justify-content: space-between; }
+  .catalog-view label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 }
 @media (max-width: 370px) {
   .showcase .top-inner { gap: 8px; }
   .showcase .top .nav-link { font-size: .75rem; }
-  .showcase .site-tabs { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); border-radius: 16px; }
   .showcase .watchtime-table td:last-child { font-size: .82rem; }
 }
 
@@ -198,7 +242,21 @@
   .showcase .card,
   .showcase .button { transition: color .18s, background-color .18s, border-color .18s, transform .24s; }
   .showcase .library-header, .showcase .watchtime > header { animation: .48s ease-out both showcase-in; }
-  .showcase .card:hover, .showcase .button:hover { transform: translateY(-3px); }
+  .showcase .button:hover { transform: translateY(-2px); }
+  .showcase .card:is(:hover, :focus-within) .card-art::after { animation: soft-shimmer 900ms ease-out both; }
+}
+
+.showcase .card-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(112deg, transparent 27%, #ffcbd92b 50%, transparent 72%);
+  transform: translateX(-105%);
+}
+@keyframes soft-shimmer {
+  from { transform: translateX(-105%); }
+  to { transform: translateX(105%); }
 }
 
 @keyframes showcase-in {

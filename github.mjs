@@ -5,11 +5,11 @@ const catalogPath = 'data/movies.json';
 
 export class CatalogChanged extends Error {}
 
-function endpoint(repo) {
+function endpoint(repo, path = catalogPath) {
   if (!/^[a-z\d][a-z\d-]*\/[a-z\d_.-]+$/i.test(repo) || /\/(\.|\.\.)$/.test(repo)) {
     throw new Error('Укажи репозиторий в формате владелец/название.');
   }
-  return `${api}/repos/${repo}/contents/${catalogPath}`;
+  return `${api}/repos/${repo}/contents/${path}`;
 }
 
 async function request(url, token, options = {}) {
@@ -37,9 +37,33 @@ export async function readGithub(repo, token, ref) {
   const file = new URL(endpoint(repo));
   if (ref) file.searchParams.set('ref', ref);
   const result = await request(file, token);
-  if (result.encoding !== 'base64') throw new Error('GitHub не вернул содержимое файла фильмов.');
+  return { data: checkData(decodeFile(result)), sha: result.sha };
+}
+
+function decodeFile(result) {
+  if (result.encoding !== 'base64') throw new Error('GitHub не вернул содержимое файла.');
   const bytes = Uint8Array.from(atob(result.content), char => char.charCodeAt(0));
-  return { data: checkData(JSON.parse(new TextDecoder().decode(bytes))), sha: result.sha };
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+export async function readSchedule(repo, token) {
+  const result = await request(endpoint(repo, 'data/schedule.json') + '?ref=main', token);
+  return { data: decodeFile(result), sha: result.sha };
+}
+
+export async function writeSchedule(repo, token, data, sha) {
+  if (!sha) throw new Error('Сначала загрузи расписание.');
+  try {
+    const result = await request(endpoint(repo, 'data/schedule.json'), token, {
+      method: 'PUT', body: JSON.stringify({
+        message: 'Обновить расписание стримов', content: encodeCatalog(data), sha, branch: 'main'
+      })
+    });
+    return result.content.sha;
+  } catch (error) {
+    if (error instanceof CatalogChanged) throw new Error('Расписание уже обновилось на GitHub. Нажми «Обновить», проверь изменения и попробуй снова.');
+    throw error;
+  }
 }
 
 export async function findCatalogRevision(repo, token, revision) {

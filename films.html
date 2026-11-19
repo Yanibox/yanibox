@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="referrer" content="no-referrer">
   <title>Заказы зрителей · Afterchat</title>
-  <link rel="stylesheet" href="style.css?v=smooth-wallpaper">
-  <link rel="stylesheet" href="showcase.css?v=profile">
-  <script type="module" src="catalog.mjs?v=passkeys"></script>
+  <link rel="stylesheet" href="style.css?v=planning">
+  <link rel="stylesheet" href="showcase.css?v=compact">
+  <script type="module" src="catalog.mjs?v=compact"></script>
 </head>
 <body class="showcase">
   <header class="top"><div class="wrap top-inner">
@@ -18,6 +18,7 @@
     <nav class="site-tabs" aria-label="Разделы витрины">
       <a href="./">Главная</a>
       <a href="films.html" aria-current="page">Заказы зрителей</a>
+      <a href="schedule.html">Расписание</a>
       <a href="watchtime.html">Время просмотра</a>
       <a href="profile.html">Профиль</a>
     </nav>
@@ -49,10 +50,11 @@
         </select>
       </div>
       <div class="catalog-view">
+        <button type="button" id="owner-toggle" class="quiet-button">Режим владельца</button>
         <label for="card-size">Размер карточек</label>
         <select id="card-size">
-          <option value="compact">Компактные</option>
-          <option value="normal" selected>Обычные</option>
+          <option value="compact" selected>Компактные</option>
+          <option value="normal">Обычные</option>
           <option value="large">Крупные</option>
         </select>
       </div>
@@ -60,5 +62,30 @@
       <div id="cards" class="cards"></div>
     </section>
   </main>
+  <dialog id="vote-dialog" class="panel action-dialog" aria-labelledby="vote-title">
+    <h2 id="vote-title"></h2>
+    <form>
+      <label>Твоя оценка<select name="score" required><option value="">Выбери от 1 до 10</option></select></label>
+      <div class="form-line"><button type="submit" class="primary">Сохранить</button><button type="submit" formmethod="dialog" formnovalidate>Закрыть</button></div>
+      <p class="hint" id="vote-message" role="status"></p>
+    </form>
+  </dialog>
+  <dialog id="owner-dialog" class="panel action-dialog" aria-labelledby="owner-title">
+    <h2 id="owner-title">Режим владельца</h2>
+    <form id="owner-login">
+      <label>Токен GitHub<input name="credential" type="password" autocomplete="off" required></label>
+      <div class="form-line"><button type="submit" class="primary">Войти</button><button type="submit" formmethod="dialog" formnovalidate>Закрыть</button></div>
+    </form>
+    <form id="owner-editor" hidden>
+      <label>Статус<select name="status"></select></label>
+      <div id="owner-plan" class="owner-plan" hidden>
+        <label>Дата показа<input name="plannedOn" type="date" min="1000-01-01" max="9999-12-31"></label>
+        <label>Время показа (МСК)<input name="plannedTime" type="time"></label>
+      </div>
+      <label>Оценка стримера<input name="rating" type="number" min="0" max="10" step="0.1"></label>
+      <div class="form-line"><button type="submit" class="primary">Опубликовать</button><button type="submit" formmethod="dialog" formnovalidate>Закрыть</button></div>
+    </form>
+    <p class="hint" id="owner-message" role="status"></p>
+  </dialog>
 </body>
 </html>

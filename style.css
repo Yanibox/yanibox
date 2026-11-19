@@ -81,6 +81,7 @@ button:disabled{opacity:.48;cursor:default}
 .editor{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 12px}
 .editor .wide,.editor .form-line,.editor>p{grid-column:span 2}
 .editor .poster-preview,.editor .editor-actions,.editor #edit-message{grid-column:1/-1}
+.editor .full-row{grid-column:1/-1}
 .poster-preview{display:flex;align-items:flex-start;gap:14px;margin-top:12px}
 .poster-preview img{width:96px;max-height:140px;object-fit:contain;border-radius:8px;background:#200c0f}
 .poster-preview .hint{margin-top:5px}
@@ -100,5 +101,24 @@ button:disabled{opacity:.48;cursor:default}
 .watchtime-table th:last-child,.watchtime-table td:last-child{text-align:right;white-space:nowrap}
 .watchtime-table tr:last-child td{border-bottom:0}
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.admin-sections{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.admin-sections [aria-pressed=true]{background:var(--accent);color:#321011;border-color:transparent}
+.admin-settings>summary{cursor:pointer;font-weight:700}
+.admin-settings .setup{margin-top:14px}
+.admin-settings .setup .panel{margin-bottom:0}
+.management-tools{display:flex;align-items:end;flex-wrap:wrap;gap:8px 12px}
+.management-tools label{flex:1 1 180px}
+.management-list{margin-top:14px}
+#game-list li{display:grid;grid-template-columns:minmax(0,1fr) minmax(105px,150px)}
+#game-list select{min-height:34px;padding:4px 8px;font-size:.84rem}
+.action-dialog{width:min(430px,calc(100% - 28px));margin:auto;color:var(--ink);background:#30141b;max-height:calc(100% - 24px);overflow:auto}
+.action-dialog::backdrop{background:#10050bd9}
+.action-dialog [role=status]:empty{display:none}
+.schedule-hero{position:relative;isolation:isolate;overflow:hidden;background:radial-gradient(ellipse at 94% 0%,#7742a66b,transparent 73%),var(--panel)}
+.schedule-hero::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(112deg,transparent 27%,#e8c7ff29 50%,transparent 72%);transform:translateX(-105%)}
+@media(prefers-reduced-motion:no-preference){
+  .schedule-hero::after{animation:schedule-shimmer 1.4s .16s ease-out both}
+}
+@keyframes schedule-shimmer{to{transform:translateX(105%)}}
 @media(max-width:700px){.filters,.setup,.editor{grid-template-columns:1fr 1fr}.filters input{grid-column:span 2}.setup{grid-template-columns:1fr}}
 @media(max-width:400px){.wrap{width:calc(100% - 24px)}.editor .wide,.editor .form-line,.editor>p{grid-column:1/-1}.watchtime-filters{grid-template-columns:1fr}.watchtime-table th,.watchtime-table td{padding-inline:4px}}

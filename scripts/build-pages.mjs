@@ -8,7 +8,8 @@ const publicFiles = [
   '.nojekyll', 'index.html', 'films.html', 'profile.html', 'admin.html', 'style.css', 'core.mjs',
   'admin.mjs', 'catalog.mjs', 'film-ratings.mjs', 'viewer-account.mjs', 'profile.mjs', 'github.mjs', 'twitch.mjs', 'movie-info.mjs',
   'data/movies.json', 'watchtime.html', 'watchtime.mjs', 'watchtime-period.mjs', 'showcase.css', 'home.css',
-  'data/cinema-wallpaper.webp'
+  'data/cinema-wallpaper.webp', 'data/schedule.json', 'schedule.html', 'schedule.mjs',
+  'schedule-data.mjs', 'schedule-admin.mjs', 'games-admin.mjs', 'showcase-owner.mjs'
 ];
 const watchtime = buildWatchtime(process.env.WATCHTIME_CACHE_URL);
 const { items } = checkData(JSON.parse(await readFile('data/movies.json', 'utf8')));
@@ -24,15 +25,14 @@ if (cacheUrl && items.length) {
   }
 }
 
-const titles = new Map(items.filter(item => !(item.poster || item.autoPoster) || !item.runtime)
-  .map(item => [movieKey(item.title), item.title]).filter(([key]) => key));
+const titles = new Map(items.map(item => [movieKey(item.title), item.title]).filter(([key]) => key));
 const records = Object.fromEntries([...titles.keys()].filter(key => Object.hasOwn(previous, key))
   .map(key => [key, previous[key]]));
 const hour = 60 * 60 * 1000;
 const now = Date.now();
 const pending = [...titles].filter(([key]) => {
   const earlier = records[key];
-  const maxAge = earlier?.info?.poster && earlier?.info?.runtime ? 30 * 24 * hour : 6 * hour;
+  const maxAge = earlier?.info?.poster && earlier?.info?.runtime && earlier?.info?.year ? 30 * 24 * hour : 6 * hour;
   return !earlier || now - earlier.checkedAt >= maxAge;
 }).sort(([a], [b]) => (records[a]?.checkedAt || 0) - (records[b]?.checkedAt || 0)).slice(0, 24);
 
@@ -61,6 +61,7 @@ if (ratingsUrl || ratingsKey) {
   await writeFile('dist/data/rating-config.json', 'null\n');
 }
 await copyFile('node_modules/@simplewebauthn/browser/dist/bundle/index.umd.min.js', 'dist/webauthn.js');
+await copyFile('node_modules/fflate/esm/browser.js', 'dist/fflate.mjs');
 const watchtimeSnapshot = await watchtime;
 watchtimeSnapshot.days = await publishWatchtimeHistory(process.env.WATCHTIME_HISTORY_DIR, watchtimeSnapshot.periods.global);
 await writeFile('dist/data/watchtime.json', JSON.stringify(watchtimeSnapshot) + '\n');

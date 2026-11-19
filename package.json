@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@simplewebauthn/browser": "14.0.0"
+    "@simplewebauthn/browser": "14.0.0",
+    "fflate": "0.8.3"
   }
 }

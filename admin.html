@@ -7,8 +7,8 @@
   <meta name="robots" content="noindex">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' https: data:; connect-src 'self' https://www.wikidata.org https://api.github.com https://api.twitch.tv https://id.twitch.tv wss://eventsub.wss.twitch.tv; base-uri 'none'; form-action 'none'">
   <title>Панель стримера · Afterchat</title>
-  <link rel="stylesheet" href="style.css?v=smooth-wallpaper">
-  <script type="module" src="admin.mjs?v=recent-first"></script>
+  <link rel="stylesheet" href="style.css?v=planning">
+  <script type="module" src="admin.mjs?v=planning"></script>
 </head>
 <body>
   <header class="top"><div class="wrap top-inner">
@@ -30,6 +30,14 @@
       <h1>Панель стримера</h1>
       <div class="form-line"><span id="dirty" class="muted" role="status"></span><button id="logout" type="button">Выйти</button></div>
     </div>
+    <nav class="admin-sections" aria-label="Разделы панели">
+      <button type="button" data-admin-section="films" aria-controls="admin-films" aria-pressed="true">Фильмы</button>
+      <button type="button" data-admin-section="schedule" aria-controls="admin-schedule" aria-pressed="false">Расписание</button>
+      <button type="button" data-admin-section="games" aria-controls="admin-games" aria-pressed="false">Игры</button>
+    </nav>
+    <div id="admin-films">
+    <details class="panel admin-settings">
+      <summary>Настройки Twitch и публикации</summary>
     <div class="setup">
       <section class="panel" aria-labelledby="twitch-title">
         <div class="panel-head"><h2 id="twitch-title">Twitch</h2><span class="pill" id="twitch-state" role="status">Отключён</span></div>
@@ -46,26 +54,25 @@
       </section>
       <section class="panel" aria-labelledby="github-title">
         <div class="panel-head"><h2 id="github-title">Публикация</h2><span class="pill" id="github-state" role="status">Черновик</span></div>
-        <p class="muted">Перед публикацией панель сама подтягивает изменения с GitHub. Сохранённые черновики тоже публикуются.</p>
         <label class="checkbox"><input id="auto-publish" type="checkbox"> Автоматически публиковать заказы Twitch</label>
         <div class="form-line"><button id="publish" class="primary" type="button" disabled>Опубликовать</button><button id="reload" type="button">Загрузить версию с GitHub</button></div>
         <p id="publish-message" class="hint" role="status"></p>
       </section>
     </div>
+    </details>
     <section class="panel" aria-labelledby="edit-title">
       <h2 id="edit-title">Добавить фильм</h2>
       <form id="editor" class="editor">
         <label class="wide">Название<input name="title" required maxlength="140"></label>
         <label>Зритель<input name="viewer" maxlength="60" autocomplete="off"></label>
         <label>Источник<input name="source" maxlength="110"></label>
-        <label>Категория<input name="category" maxlength="40" list="categories" placeholder="Например, фантастика"><datalist id="categories"></datalist></label>
         <label>Статус<select name="status"></select></label>
-        <label>Дата просмотра<input name="watchedOn" type="date" min="1000-01-01" max="9999-12-31"></label>
         <label>Дата заказа<input name="orderedOn" type="date" min="1000-01-01" max="9999-12-31"></label>
         <label id="planned-date-field" hidden>Дата показа<input name="plannedOn" type="date" min="1000-01-01" max="9999-12-31" disabled></label>
         <label id="planned-time-field" hidden>Время показа (МСК, необязательно)<input name="plannedTime" type="time" disabled></label>
+        <p id="planned-hint" class="hint full-row" hidden>После публикации фильм появится в расписании на указанную дату.</p>
+        <label>Дата просмотра<input name="watchedOn" type="date" min="1000-01-01" max="9999-12-31"></label>
         <label>Оценка стримера<input name="rating" type="number" min="0" max="10" step="0.1" placeholder="От 0 до 10"></label>
-        <label>Длительность, мин<input name="runtime" type="number" min="1" max="1440" step="1" placeholder="Найдётся по названию"></label>
         <div class="wide poster-preview">
           <img id="poster-preview" alt="Предпросмотр постера" referrerpolicy="no-referrer" hidden>
           <div>
@@ -73,11 +80,15 @@
             <p class="hint" id="poster-message" role="status"></p>
           </div>
         </div>
-        <details class="wide poster-options">
-          <summary>Указать ссылку на постер</summary>
+        <details class="full-row poster-options">
+          <summary>Дополнительные поля</summary>
+          <div class="editor">
+          <label>Категория<input name="category" maxlength="40" list="categories" placeholder="Например, фантастика"><datalist id="categories"></datalist></label>
+          <label>Длительность, мин<input name="runtime" type="number" min="1" max="1440" step="1" placeholder="Найдётся по названию"></label>
           <label>Прямая ссылка на изображение<input name="poster" type="url" maxlength="1000" placeholder="https://…"></label>
+          <label>Заметка<input name="note" maxlength="240"></label>
+          </div>
         </details>
-        <label class="wide">Заметка<input name="note" maxlength="240"></label>
         <div class="form-line editor-actions"><button class="primary" type="submit" id="save-publish">Сохранить и опубликовать</button><button type="submit" id="save-draft">Сохранить черновик</button><button id="cancel" type="button" hidden>Отмена</button></div>
         <p class="hint" id="edit-message" role="status"></p>
       </form>
@@ -85,6 +96,49 @@
     <section class="panel" aria-labelledby="queue-title">
       <div class="panel-head"><h2 id="queue-title">Очередь и история</h2><span id="admin-count" class="muted"></span></div>
       <ul class="queue" id="queue"></ul>
+    </section>
+    </div>
+    <div id="admin-schedule" hidden>
+      <section class="panel schedule-hero">
+        <div class="panel-head"><h2>Расписание стримов</h2><a class="nav-link" href="schedule.html">Открыть витрину ↗</a></div>
+        <p class="muted">Добавляй эфиры вручную. Фильмы со статусом «Запланирован» и датой показа появятся в расписании автоматически.</p>
+        <p id="stream-message" class="hint" role="status"></p>
+        <div class="form-line"><button id="stream-reload" type="button">Обновить</button></div>
+      </section>
+      <section class="panel">
+        <h2 id="stream-edit-title">Добавить стрим</h2>
+        <form id="stream-editor" class="editor" inert>
+          <label class="wide">Название<input name="title" maxlength="120" required></label>
+          <label>Дата<input name="date" type="date" min="1000-01-01" max="9999-12-31" required></label>
+          <label>Начало (МСК)<input name="time" type="time"></label>
+          <label class="full-row">Описание<input name="note" maxlength="240"></label>
+          <div class="form-line full-row"><button type="submit" class="primary">Сохранить и опубликовать</button><button id="stream-cancel" type="button" hidden>Отмена</button></div>
+        </form>
+        <ul id="stream-list" class="queue management-list"></ul>
+      </section>
+      <details class="panel admin-settings">
+        <summary>Google Календарь</summary>
+        <form id="calendar-settings" inert>
+          <p class="hint">Можно показать на витрине отдельный публичный календарь стримов. Скопируй его идентификатор в Google Календаре из раздела «Интеграция календаря».</p>
+          <label>Идентификатор публичного календаря<input name="calendarId" maxlength="254" autocomplete="off" spellcheck="false"></label>
+          <div class="form-line"><button type="submit">Сохранить календарь</button></div>
+        </form>
+      </details>
+    </div>
+    <section id="admin-games" class="panel" hidden>
+      <div class="panel-head"><h2>Игры</h2><span id="games-count" class="muted"></span></div>
+      <p class="hint">Идеи и статусы сохраняются в этом браузере.</p>
+      <label>Импортировать лист «Игры»<input id="games-file" type="file" accept=".xlsx"></label>
+      <form id="game-editor" class="management-tools">
+        <label>Новая игра<input name="title" maxlength="160" required></label>
+        <button type="submit" class="primary">Добавить</button>
+      </form>
+      <div class="management-tools">
+        <label>Поиск<input id="game-search" type="search"></label>
+        <label>Статус<select id="game-filter"><option value="">Все статусы</option></select></label>
+      </div>
+      <p id="games-message" class="hint" role="status"></p>
+      <ul id="game-list" class="queue management-list"></ul>
     </section>
     </div>
   </main>

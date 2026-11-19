@@ -1,6 +1,7 @@
 import { categories, element, loadCatalog, orderDateLabel, statuses, viewingDateLabel } from './core.mjs';
-import { filmRatings } from './film-ratings.mjs?v=passkeys';
-import { loadMovieInfo, movieDetails, runtimeLabel } from './movie-info.mjs';
+import { filmRatings } from './film-ratings.mjs?v=compact';
+import { loadMovieInfo, movieDetails, runtimeLabel } from './movie-info.mjs?v=hours';
+import { ownerTools } from './showcase-owner.mjs';
 
 const byId = id => document.getElementById(id);
 const [search, category, status, viewer, sort, summary, message, cards] =
@@ -18,6 +19,10 @@ let records = {};
 let revision;
 let refreshing = false;
 const ratings = filmRatings(render);
+const owner = ownerTools(render, updated => {
+  items = items.map(item => item.id === updated.id ? updated : item);
+  render();
+});
 const cardSize = byId('card-size');
 const cardSizeKey = 'yanibox-card-size';
 
@@ -65,31 +70,46 @@ function card(item) {
     image.alt = '';
     image.loading = 'lazy';
     image.referrerPolicy = 'no-referrer';
-    image.addEventListener('error', () => art.replaceChildren(placeholder), { once: true });
+    image.addEventListener('load', () => { placeholder.hidden = true; }, { once: true });
+    image.addEventListener('error', () => image.remove(), { once: true });
     image.src = poster;
-    art.replaceChildren(image);
+    art.append(image);
   }
 
   const body = element('div', null, 'card-body');
-  const meta = element('div', null, 'film-meta');
+  const badges = element('div', null, 'film-meta card-badges');
   const badge = element('span', statuses[item.status], 'pill');
   badge.dataset.status = item.status;
-  meta.append(badge);
-  if (item.category) meta.append(element('span', item.category));
-  if (year) meta.append(element('span', year));
+  badges.append(badge);
+  const redeemed = item.id.startsWith('twitch-');
+  const pointsLabel = /^баллы(?: канала| twitch)?$/i;
+  const channelPoints = redeemed || [item.source, item.rewardTitle].some(value => pointsLabel.test(value));
+  if (channelPoints || (item.source && lower(item.source) !== lower(item.viewer))) {
+    const source = element('span', channelPoints ? 'Баллы канала' : item.source, 'pill');
+    if (channelPoints || /\btwitch\b/i.test(item.source)) source.dataset.source = 'twitch';
+    badges.append(source);
+  }
+  body.append(badges, element('h3', item.title));
+  const meta = element('div', null, 'film-meta card-facts');
+  if (year) meta.append(element('span', `${year} год`));
   if (runtime) meta.append(element('span', runtimeLabel(runtime)));
-  body.append(meta, element('h3', item.title));
-  if (item.status === 'watched' || item.rating != null) {
-    const score = item.rating == null ? 'без оценки' : item.rating.toLocaleString('ru') + ' / 10';
-    body.append(element('p', 'Стример: ' + score, 'rating'));
+  if (item.category) meta.append(element('span', item.category));
+  if (meta.childElementCount) body.append(meta);
+  const order = element('div', null, 'card-order');
+  if (item.viewer) {
+    const customer = element('p', 'Заказ · ');
+    customer.append(element('strong', item.viewer));
+    order.append(customer);
   }
-  const viewerRating = ratings.forMovie(item);
-  if (viewerRating) body.append(viewerRating);
-  if (item.viewer) body.append(element('p', 'Заказал: ' + item.viewer, 'hint'));
-  if (item.source && item.source.toLocaleLowerCase('ru') !== item.viewer.toLocaleLowerCase('ru')) {
-    body.append(element('p', 'Источник: ' + item.source, 'hint'));
+  const preciseOrder = redeemed && orderDateLabel(item.created);
+  const ordered = preciseOrder || (item.orderedOn ? viewingDateLabel(item.orderedOn) :
+    item.viewer ? orderDateLabel(item.created) : '');
+  if (ordered) {
+    const time = element('time', ordered);
+    time.dateTime = preciseOrder ? item.created : item.orderedOn || item.created;
+    order.append(time);
   }
-  if (item.rewardTitle) body.append(element('p', item.rewardTitle, 'hint'));
+  if (order.childElementCount) body.append(order);
   if (item.status === 'planned' && item.plannedOn) {
     const clock = item.plannedTime ? ` в ${item.plannedTime} МСК` : '';
     const time = element('time', `Показ ${viewingDateLabel(item.plannedOn)}${clock}`, 'planned-date');
@@ -102,13 +122,14 @@ function card(item) {
     time.dateTime = item.watchedOn;
     body.append(time);
   }
-  const ordered = item.orderedOn ? `Заказ от ${viewingDateLabel(item.orderedOn)}` : !date && orderDateLabel(item.created);
-  if (ordered) {
-    const time = element('time', ordered, 'hint');
-    time.dateTime = item.orderedOn || item.created;
-    body.append(time);
-  }
   if (item.note) body.append(element('p', item.note, 'hint'));
+  const scores = element('div', null, 'card-scores');
+  if (item.rating != null) scores.append(element('p', 'Стример · ' + item.rating.toLocaleString('ru') + '/10', 'rating'));
+  const viewerRating = ratings.forMovie(item);
+  if (viewerRating) scores.append(viewerRating);
+  if (scores.childElementCount) body.append(scores);
+  const edit = owner.forMovie(item);
+  if (edit) body.append(edit);
   node.append(art, body);
   return node;
 }

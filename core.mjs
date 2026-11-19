@@ -9,6 +9,7 @@ const orderDate = new Intl.DateTimeFormat('ru-RU', {
 const watchDate = new Intl.DateTimeFormat('ru-RU', { dateStyle: 'long', timeZone: 'UTC' });
 
 export function orderDateLabel(value) {
+  if (!value) return '';
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? '' : `${orderDate.format(date)} МСК`;
 }

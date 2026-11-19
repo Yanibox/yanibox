@@ -6,6 +6,42 @@ export function filmRatings(onChange) {
   let linked;
   let ratings;
   let loadId = 0;
+  const dialog = document.getElementById('vote-dialog');
+  const form = dialog.querySelector('form');
+  const select = form.elements.score;
+  const submit = form.querySelector('[type="submit"]');
+  const result = document.getElementById('vote-message');
+  let active;
+  for (let score = 1; score <= 10; score++) select.add(new Option(`${score} / 10`, String(score)));
+
+  form.addEventListener('submit', async event => {
+    if (event.submitter?.formMethod === 'dialog') return;
+    event.preventDefault();
+    if (!active || submit.disabled) return;
+    const { item, label, button } = active;
+    const voter = session();
+    select.disabled = submit.disabled = true;
+    result.textContent = 'Сохраняем…';
+    try {
+      const { rating: data } = await viewerRequest('vote', { movie: item.id, score: Number(select.value) });
+      if (voter !== session()) return;
+      if (ratings) ratings[item.id] = data;
+      label.textContent = scoreLabel(data);
+      button.textContent = 'Изменить оценку';
+      result.textContent = 'Оценка сохранена.';
+      if (!button.isConnected) onChange();
+    } catch (error) {
+      if (error.message === 'session' || error.message === 'link-required') void loadRatings();
+      result.textContent = 'Не удалось сохранить оценку. Попробуй ещё раз.';
+    } finally {
+      select.disabled = submit.disabled = false;
+    }
+  });
+
+  function scoreLabel(value) {
+    return value?.votes ? `Зрители · ${Number(value.average).toLocaleString('ru')}/10 · ${value.votes} гол.` :
+      'Зрители · пока без оценок';
+  }
 
   async function loadRatings() {
     const id = ++loadId;
@@ -38,11 +74,9 @@ export function filmRatings(onChange) {
     if (!configured || item.status !== 'watched') return null;
     const block = element('div', null, 'viewer-rating');
     const current = ratings && Object.hasOwn(ratings, item.id) ? ratings[item.id] : null;
-    const label = ratings === undefined ? 'Зрители: загружаем оценки…' :
-      ratings === null ? 'Зрители: оценки временно недоступны' :
-      current?.votes ? `Зрители: ${Number(current.average).toLocaleString('ru')} / 10 · голосов: ${current.votes}` :
-      'Зрители: пока без оценок';
-    block.append(element('p', label));
+    const label = element('p', ratings === undefined ? 'Загружаем оценки…' :
+      ratings === null ? 'Оценки временно недоступны' : scoreLabel(current));
+    block.append(label);
     if (!current) return block;
 
     if (!linked) {
@@ -52,40 +86,18 @@ export function filmRatings(onChange) {
       return block;
     }
 
-    const form = element('form', null, 'viewer-vote');
-    const select = element('select');
-    select.required = true;
-    select.setAttribute('aria-label', 'Твоя оценка: ' + item.title);
-    select.add(new Option('Оценка', ''));
-    for (let score = 1; score <= 10; score++) select.add(new Option(`${score} / 10`, String(score)));
-    select.value = current.mine == null ? '' : String(current.mine);
-    const submit = element('button', current.mine == null ? 'Оценить' : 'Изменить');
-    const result = element('p', '', 'hint');
-    result.setAttribute('role', 'status');
-    submit.type = 'submit';
-    form.append(select, submit);
-    form.addEventListener('submit', async event => {
-      event.preventDefault();
-      const voter = session();
-      select.disabled = submit.disabled = true;
+    const button = element('button', current.mine == null ? 'Оценить' : 'Изменить оценку');
+    button.type = 'button';
+    button.addEventListener('click', () => {
+      if (submit.disabled) return;
+      active = { item, label, button };
+      dialog.querySelector('h2').textContent = item.title;
+      const mine = ratings?.[item.id]?.mine;
+      select.value = mine == null ? '' : String(mine);
       result.textContent = '';
-      try {
-        const { rating: data } = await viewerRequest('vote', {
-          movie: item.id, score: Number(select.value)
-        });
-        if (voter !== session()) return;
-        if (ratings) ratings[item.id] = data;
-        block.firstElementChild.textContent = `Зрители: ${Number(data.average).toLocaleString('ru')} / 10 · голосов: ${data.votes}`;
-        submit.textContent = 'Изменить';
-        result.textContent = 'Оценка сохранена.';
-      } catch (error) {
-        if (error.message === 'session' || error.message === 'link-required') void loadRatings();
-        result.textContent = 'Не удалось сохранить оценку. Попробуй ещё раз.';
-      } finally {
-        select.disabled = submit.disabled = false;
-      }
+      dialog.showModal();
     });
-    block.append(form, result);
+    block.append(button);
     return block;
   }
 

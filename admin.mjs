@@ -3,8 +3,10 @@ import {
   statuses, uploadedPoster, viewingDate, viewingDateLabel
 } from './core.mjs?v=catalog-sync';
 import { CatalogChanged, checkOwner, findCatalogRevision, readGithub, writeGithub } from './github.mjs?v=catalog-sync';
-import { findMovieInfo, loadMovieInfo, movieDetails, movieKey, runtimeLabel } from './movie-info.mjs';
+import { findMovieInfo, loadMovieInfo, movieDetails, movieKey, runtimeLabel } from './movie-info.mjs?v=hours';
 import { beginLogin, finishLogin, getRewards, listen, redirectUri, validate } from './twitch.mjs';
+import { gamesAdmin } from './games-admin.mjs';
+import { scheduleAdmin } from './schedule-admin.mjs';
 
 const byId = id => document.getElementById(id);
 const form = byId('editor');
@@ -22,6 +24,19 @@ const namespace = 'yanibox-kino:' + (sitePath === '/yanibox/' ? '/kinoclub/' : s
 const draftKey = namespace + ':draft';
 const autoKey = namespace + ':auto-publish';
 let githubToken = '';
+const streams = scheduleAdmin(repo, () => githubToken);
+const games = gamesAdmin(namespace, () => Boolean(githubToken));
+const sections = [...document.querySelectorAll('[data-admin-section]')];
+function openSection(section) {
+  for (const button of sections) {
+    const selected = button.dataset.adminSection === section;
+    byId(button.getAttribute('aria-controls')).hidden = !selected;
+    button.setAttribute('aria-pressed', String(selected));
+  }
+  if (section === 'schedule') streams.show();
+  if (section === 'games') games.show();
+}
+for (const button of sections) button.addEventListener('click', () => openSection(button.dataset.adminSection));
 let twitchCallback;
 let state;
 let baseData;
@@ -96,6 +111,7 @@ function updateScheduleForm() {
   const planned = fields.status.value === 'planned';
   byId('planned-date-field').hidden = !planned;
   byId('planned-time-field').hidden = !planned;
+  byId('planned-hint').hidden = !planned;
   fields.plannedOn.disabled = !planned;
   fields.plannedTime.disabled = !planned;
   fields.plannedOn.required = planned;
@@ -618,6 +634,9 @@ byId('login-form').addEventListener('submit', async event => {
 
 byId('logout').addEventListener('click', () => {
   githubToken = '';
+  streams.reset();
+  games.reset();
+  openSection('films');
   visibilityCheck++;
   autoPending = false;
   clearTimeout(autoTimer);

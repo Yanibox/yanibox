@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; frame-src https://calendar.google.com; base-uri 'none'">
+  <title>Расписание стримов · Afterchat</title>
+  <link rel="stylesheet" href="style.css?v=planning">
+  <link rel="stylesheet" href="showcase.css?v=compact">
+  <script type="module" src="schedule.mjs"></script>
+</head>
+<body class="showcase">
+  <header class="top"><div class="wrap top-inner">
+    <a class="brand" href="./"><span class="mark" aria-hidden="true"></span> Afterchat</a>
+    <a class="nav-link" href="admin.html">Панель стримера</a>
+  </div></header>
+  <main class="wrap">
+    <nav class="site-tabs" aria-label="Разделы витрины">
+      <a href="./">Главная</a>
+      <a href="films.html">Заказы зрителей</a>
+      <a href="schedule.html" aria-current="page">Расписание</a>
+      <a href="watchtime.html">Время просмотра</a>
+      <a href="profile.html">Профиль</a>
+    </nav>
+    <section class="library" aria-labelledby="schedule-title">
+      <header class="library-header schedule-hero">
+        <h1 id="schedule-title">Расписание <em>стримов</em></h1>
+        <a class="button" href="https://www.twitch.tv/yanibox">Канал на Twitch ↗</a>
+      </header>
+      <p id="schedule-message" class="muted" role="status">Загружаем расписание…</p>
+      <ul id="schedule-list" class="schedule-list"></ul>
+      <section id="google-schedule" class="panel" hidden>
+        <h2>Google Календарь</h2>
+        <iframe id="calendar-frame" title="Календарь стримов" loading="lazy" referrerpolicy="no-referrer"></iframe>
+      </section>
+    </section>
+  </main>
+</body>
+</html>
