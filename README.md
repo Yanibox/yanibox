@@ -40,11 +40,12 @@ python -m http.server 8765 --bind 127.0.0.1
 
 Гости видят оценку стримера, среднюю зрительскую оценку и число голосов. Чтобы оценить просмотренный фильм, зритель входит через Twitch. Один аккаунт может поставить от 1 до 10 и изменить свою оценку. Публичный API возвращает только сводку по фильмам. Оценка отдельного зрителя доступна ему самому после входа.
 
-1. Создай проект Supabase и примени миграцию из `supabase/migrations` через SQL Editor.
+1. Создай проект Supabase и примени миграции из `supabase/migrations` по порядку через SQL Editor.
 2. Включи [вход через Twitch](https://supabase.com/docs/guides/auth/social-sign-in/auth-twitch) в Supabase. Зарегистрируй отдельное приложение в Twitch Developer Console и добавь URL обратного вызова из настроек провайдера. Клиентский секрет Twitch вводится в настройках Supabase. В Supabase разреши возврат на `https://yanibox.github.io/yanibox/films.html`.
-3. В GitHub Actions добавь переменные `SUPABASE_URL` и `SUPABASE_PUBLISHABLE_KEY` и секрет `SUPABASE_SECRET_KEY`. Запусти **Publish Yanibox**. При каждой публикации процесс передаёт Supabase список фильмов со статусом **Посмотрели**.
+3. Сгенерируй 32 случайных байта в виде 64 строчных шестнадцатеричных символов. Сохрани эту строку как секрет GitHub Actions `YANIBOX_RATINGS_SYNC_KEY`. Сохрани в `viewer_ratings.sync_config.key_hash` только SHA-256 от текстовой строки. Для хеша в шестнадцатеричном виде используй `insert into viewer_ratings.sync_config (key_hash) values (decode('<хеш>', 'hex')) on conflict (singleton) do update set key_hash = excluded.key_hash;`.
+4. В GitHub Actions добавь переменные `SUPABASE_URL` и `SUPABASE_PUBLISHABLE_KEY`. После настройки входа через Twitch выставь `SUPABASE_RATINGS_ENABLED` в `true` и запусти **Publish Yanibox**. При каждой публикации процесс передаёт Supabase список фильмов со статусом **Посмотрели**.
 
-Код витрины использует только публичный ключ. GitHub Actions использует секрет Supabase для обновления списка доступных для голосования фильмов. Встроенный провайдер Twitch в Supabase запрашивает право чтения email. Витрина не показывает email и не запрашивает дополнительные права Twitch.
+Код витрины использует только публичный ключ. Ключ синхронизации в GitHub Actions даёт доступ к обновлению списка доступных для голосования фильмов. Встроенный провайдер Twitch в Supabase запрашивает право чтения email. Витрина не показывает email и не запрашивает дополнительные права Twitch.
 
 ## Время просмотра
 
