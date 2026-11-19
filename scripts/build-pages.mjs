@@ -5,8 +5,8 @@ import { buildWatchtime } from './watchtime.mjs';
 import { publishWatchtimeHistory } from './watchtime-history.mjs';
 
 const publicFiles = [
-  '.nojekyll', 'index.html', 'films.html', 'admin.html', 'style.css', 'core.mjs',
-  'admin.mjs', 'catalog.mjs', 'film-ratings.mjs', 'viewer-account.mjs', 'github.mjs', 'twitch.mjs', 'movie-info.mjs',
+  '.nojekyll', 'index.html', 'films.html', 'profile.html', 'admin.html', 'style.css', 'core.mjs',
+  'admin.mjs', 'catalog.mjs', 'film-ratings.mjs', 'viewer-account.mjs', 'profile.mjs', 'github.mjs', 'twitch.mjs', 'movie-info.mjs',
   'data/movies.json', 'watchtime.html', 'watchtime.mjs', 'watchtime-period.mjs', 'showcase.css', 'home.css',
   'data/cinema-wallpaper.webp'
 ];
@@ -56,11 +56,11 @@ if (ratingsUrl || ratingsKey) {
       !/^sb_publishable_[\w-]+$/.test(ratingsKey)) {
     throw new Error('Set SUPABASE_URL and a Supabase publishable key for film ratings.');
   }
-  await copyFile('node_modules/@supabase/supabase-js/dist/umd/supabase.js', 'dist/supabase.js');
   await writeFile('dist/data/rating-config.json', JSON.stringify({ url: ratingsUrl, key: ratingsKey }) + '\n');
 } else {
   await writeFile('dist/data/rating-config.json', 'null\n');
 }
+await copyFile('node_modules/@simplewebauthn/browser/dist/bundle/index.umd.min.js', 'dist/webauthn.js');
 const watchtimeSnapshot = await watchtime;
 watchtimeSnapshot.days = await publishWatchtimeHistory(process.env.WATCHTIME_HISTORY_DIR, watchtimeSnapshot.periods.global);
 await writeFile('dist/data/watchtime.json', JSON.stringify(watchtimeSnapshot) + '\n');

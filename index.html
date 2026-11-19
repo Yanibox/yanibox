@@ -8,18 +8,22 @@
   <meta name="theme-color" content="#1a080a">
   <title>Yanibox · Главная</title>
   <link rel="stylesheet" href="style.css?v=smooth-wallpaper">
-  <link rel="stylesheet" href="showcase.css?v=smooth-wallpaper">
+  <link rel="stylesheet" href="showcase.css?v=profile">
   <link rel="stylesheet" href="home.css?v=smooth-wallpaper">
-  <script type="module" src="viewer-account.mjs"></script>
 </head>
 <body class="showcase home">
   <header class="top"><div class="wrap top-inner">
     <a class="brand" href="./" aria-current="page"><span class="mark" aria-hidden="true"></span> Yanibox</a>
-    <div class="top-actions">
-      <a class="nav-link" href="admin.html">Панель стримера</a>
-      <button class="viewer-account" id="viewer-account" type="button" aria-haspopup="dialog" hidden>Войти через Twitch</button>
-    </div>
+    <a class="nav-link" href="admin.html">Панель стримера</a>
   </div></header>
+  <div class="wrap">
+    <nav class="site-tabs" aria-label="Разделы витрины">
+      <a href="./" aria-current="page">Главная</a>
+      <a href="films.html">Заказы зрителей</a>
+      <a href="watchtime.html">Время просмотра</a>
+      <a href="profile.html">Профиль</a>
+    </nav>
+  </div>
   <main class="wrap home-main">
     <section class="home-hero" aria-labelledby="home-title">
       <div class="home-intro">

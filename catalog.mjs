@@ -1,5 +1,5 @@
 import { categories, element, loadCatalog, orderDateLabel, statuses, viewingDateLabel } from './core.mjs';
-import { filmRatings } from './film-ratings.mjs';
+import { filmRatings } from './film-ratings.mjs?v=passkeys';
 import { loadMovieInfo, movieDetails, runtimeLabel } from './movie-info.mjs';
 
 const byId = id => document.getElementById(id);

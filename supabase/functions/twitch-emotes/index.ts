@@ -1,15 +1,35 @@
 const encoder = new TextEncoder();
-const secret = Deno.env.get('TWITCH_EVENTSUB_SECRET');
-const broadcaster = Deno.env.get('TWITCH_BROADCASTER_ID');
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-const signatureKey = secret
-  ? crypto.subtle.importKey('raw', encoder.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify'])
-  : null;
+
+const rpc = (name: string, args: Record<string, unknown>) => fetch(supabaseUrl + '/rest/v1/rpc/' + name, {
+  method: 'POST',
+  headers: { apikey: serviceKey!, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify(args),
+  signal: AbortSignal.timeout(2500),
+});
+
+let config: { broadcaster: string; key: CryptoKey; expires: number } | undefined;
+
+async function signingConfig() {
+  if (config && config.expires > Date.now()) return config;
+  let secret = Deno.env.get('TWITCH_EVENTSUB_SECRET');
+  let broadcaster = Deno.env.get('TWITCH_BROADCASTER_ID');
+  if (!secret || !broadcaster) {
+    const response = await rpc('yanibox_chat_config', {});
+    if (!response.ok) return null;
+    const saved = await response.json();
+    secret = saved?.secret;
+    broadcaster = saved?.broadcaster;
+  }
+  if (!secret || !broadcaster) return null;
+  const key = await crypto.subtle.importKey('raw', encoder.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']);
+  return config = { broadcaster, key, expires: Date.now() + 120000 };
+}
 
 Deno.serve(async request => {
   if (request.method !== 'POST') return new Response(null, { status: 405 });
-  if (!signatureKey || !broadcaster || !supabaseUrl || !serviceKey) return new Response(null, { status: 503 });
+  if (!supabaseUrl || !serviceKey) return new Response(null, { status: 503 });
 
   const id = request.headers.get('Twitch-Eventsub-Message-Id');
   const timestamp = request.headers.get('Twitch-Eventsub-Message-Timestamp');
@@ -20,9 +40,12 @@ Deno.serve(async request => {
       !Number.isFinite(age) || age < -60000 || age > 600000) {
     return new Response(null, { status: 403 });
   }
+  const settings = await signingConfig().catch(() => null);
+  if (!settings) return new Response(null, { status: 503 });
+  const { broadcaster, key } = settings;
   const body = await request.text();
   const bytes = Uint8Array.from(hash.slice(7).match(/../g)!, pair => parseInt(pair, 16));
-  if (!await crypto.subtle.verify('HMAC', await signatureKey, bytes, encoder.encode(id + timestamp + body))) {
+  if (!await crypto.subtle.verify('HMAC', key, bytes, encoder.encode(id + timestamp + body))) {
     return new Response(null, { status: 403 });
   }
 
@@ -46,17 +69,21 @@ Deno.serve(async request => {
     return new Response(null, { status: 204 });
   }
   const emotes = event.message.fragments.filter((fragment: { type: string }) => fragment.type === 'emote').length;
-  if (!emotes) return new Response(null, { status: 204 });
+  const code = /^!привязать\s+([a-f0-9]{16})$/i.exec(event.message.text.trim())?.[1].toLowerCase();
+  if (!emotes && !code) return new Response(null, { status: 204 });
 
   try {
-    const result = await fetch(supabaseUrl + '/rest/v1/rpc/record_twitch_emotes', {
-      method: 'POST',
-      headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message_id: event.message_id, viewer_id: event.chatter_user_id, emotes }),
-      signal: AbortSignal.timeout(2500)
-    });
-    if (result.ok) return new Response(null, { status: 204 });
-    console.warn('Could not record Twitch emotes', result.status);
+    const jobs = [];
+    if (emotes) jobs.push(rpc('record_twitch_emotes', {
+      message_id: event.message_id, viewer_id: event.chatter_user_id, emotes,
+    }));
+    if (code) {
+      const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode(code)));
+      const hash = Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('');
+      jobs.push(rpc('yanibox_confirm_twitch', { digest: hash, sender_id: event.chatter_user_id, sender_login: event.chatter_user_login }));
+    }
+    if ((await Promise.all(jobs)).every(result => result.ok)) return new Response(null, { status: 204 });
+    console.warn('Could not process Twitch chat event');
   } catch {
     console.warn('Twitch emote storage unavailable');
   }

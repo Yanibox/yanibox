@@ -1,38 +1,41 @@
 import { element } from './core.mjs';
-import { onViewerSession, openViewerAccount } from './viewer-account.mjs';
+import { session, settings, viewerRequest, publicRatings, onSessionChange } from './viewer-account.mjs?v=passkeys';
 
 export function filmRatings(onChange) {
-  let client;
-  let viewerId;
+  let configured;
+  let linked;
   let ratings;
   let loadId = 0;
 
   async function loadRatings() {
     const id = ++loadId;
+    const config = await settings();
+    if (!config || id !== loadId) return;
+    configured = true;
+    linked = false;
+    ratings = undefined;
+    onChange();
+    const token = session();
+    let profile;
     let nextRatings = null;
     try {
-      const { data, error } = await client.rpc('get_film_ratings');
-      if (!error) nextRatings = data;
-    } catch {
-      // Keep the catalog usable when ratings cannot be loaded.
+      if (token) profile = await viewerRequest('profile');
+      if (profile?.twitch) ({ ratings: nextRatings } = await viewerRequest('ratings'));
+    } catch {}
+    if (!nextRatings) {
+      try { nextRatings = await publicRatings(config); } catch {}
     }
     if (id !== loadId) return;
+    linked = Boolean(profile?.twitch) && session() === token;
     ratings = nextRatings;
     onChange();
   }
 
-  onViewerSession((nextClient, nextViewer) => {
-    client = nextClient;
-    viewerId = nextViewer;
-    ratings = undefined;
-    loadId++;
-    onChange();
-    // Supabase Auth holds its session lock while delivering this callback.
-    setTimeout(() => void loadRatings(), 0);
-  });
+  onSessionChange(() => void loadRatings());
+  void loadRatings();
 
   function forMovie(item) {
-    if (!client || item.status !== 'watched') return null;
+    if (!configured || item.status !== 'watched') return null;
     const block = element('div', null, 'viewer-rating');
     const current = ratings && Object.hasOwn(ratings, item.id) ? ratings[item.id] : null;
     const label = ratings === undefined ? 'Зрители: загружаем оценки…' :
@@ -42,11 +45,10 @@ export function filmRatings(onChange) {
     block.append(element('p', label));
     if (!current) return block;
 
-    if (!viewerId) {
-      const button = element('button', 'Войти, чтобы оценить');
-      button.type = 'button';
-      button.addEventListener('click', openViewerAccount);
-      block.append(button);
+    if (!linked) {
+      const link = element('a', session() ? 'Привязать Twitch для оценки' : 'Войти, чтобы оценить', 'button');
+      link.href = 'profile.html';
+      block.append(link);
       return block;
     }
 
@@ -64,20 +66,20 @@ export function filmRatings(onChange) {
     form.append(select, submit);
     form.addEventListener('submit', async event => {
       event.preventDefault();
-      const voter = viewerId;
+      const voter = session();
       select.disabled = submit.disabled = true;
       result.textContent = '';
       try {
-        const { data, error } = await client.rpc('set_film_rating', {
-          movie_id: item.id, score: Number(select.value)
+        const { rating: data } = await viewerRequest('vote', {
+          movie: item.id, score: Number(select.value)
         });
-        if (voter !== viewerId) return;
-        if (error) throw error;
+        if (voter !== session()) return;
         if (ratings) ratings[item.id] = data;
         block.firstElementChild.textContent = `Зрители: ${Number(data.average).toLocaleString('ru')} / 10 · голосов: ${data.votes}`;
         submit.textContent = 'Изменить';
         result.textContent = 'Оценка сохранена.';
-      } catch {
+      } catch (error) {
+        if (error.message === 'session' || error.message === 'link-required') void loadRatings();
         result.textContent = 'Не удалось сохранить оценку. Попробуй ещё раз.';
       } finally {
         select.disabled = submit.disabled = false;

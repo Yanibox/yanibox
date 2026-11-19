@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Профиль · Yanibox</title>
+  <link rel="stylesheet" href="style.css?v=smooth-wallpaper">
+  <link rel="stylesheet" href="showcase.css?v=profile">
+  <script defer src="webauthn.js"></script>
+  <script type="module" src="profile.mjs"></script>
+</head>
+<body class="showcase">
+  <header class="top"><div class="wrap top-inner">
+    <a class="brand" href="./"><span class="mark" aria-hidden="true"></span> Yanibox</a>
+    <a class="nav-link" href="admin.html">Панель стримера</a>
+  </div></header>
+  <main class="wrap">
+    <nav class="site-tabs" aria-label="Разделы витрины">
+      <a href="./">Главная</a>
+      <a href="films.html">Заказы зрителей</a>
+      <a href="watchtime.html">Время просмотра</a>
+      <a href="profile.html" aria-current="page">Профиль</a>
+    </nav>
+    <section class="library" id="viewer-profile" aria-labelledby="viewer-title">
+      <header class="library-header">
+        <div><h1 id="viewer-title">Профиль</h1></div>
+        <div class="viewer-identity" hidden>
+          <div><p class="viewer-name"></p><p class="hint viewer-handle"></p></div>
+        </div>
+      </header>
+      <div class="panel viewer-guest" hidden>
+        <h2>Создать профиль</h2>
+        <form id="viewer-register">
+          <label for="viewer-name">Ник на Yanibox</label>
+          <input id="viewer-name" name="name" required minlength="2" maxlength="32" autocomplete="nickname">
+          <button class="primary" type="submit">Создать с ключом доступа</button>
+        </form>
+        <div class="viewer-actions">
+          <button id="viewer-login" type="button">Войти с ключом доступа</button>
+        </div>
+        <details>
+          <summary>Восстановить доступ</summary>
+          <form id="viewer-recover">
+            <label for="viewer-recovery">Код восстановления</label>
+            <input id="viewer-recovery" name="recovery" required maxlength="40" autocomplete="off" spellcheck="false">
+            <button type="submit">Восстановить и создать новый ключ</button>
+          </form>
+        </details>
+      </div>
+      <section id="viewer-recovery-saved" class="panel viewer-guest" aria-labelledby="viewer-recovery-title" hidden>
+        <h2 id="viewer-recovery-title" tabindex="-1">Сохрани код восстановления</h2>
+        <p>Он понадобится, если потеряешь ключ доступа. После восстановления сайт выдаст новый код.</p>
+        <code id="viewer-recovery-code"></code>
+        <button id="viewer-recovery-done" type="button">Код сохранён</button>
+      </section>
+      <div class="viewer-member" hidden>
+        <section id="viewer-link-section" class="panel viewer-guest" aria-labelledby="viewer-link-title" hidden>
+          <h2 id="viewer-link-title">Привязать Twitch</h2>
+          <p>Подтверди аккаунт, чтобы увидеть свою статистику и оценивать фильмы.</p>
+          <form id="viewer-link">
+            <label for="viewer-twitch">Логин Twitch</label>
+            <input id="viewer-twitch" name="login" required maxlength="25" pattern="[A-Za-z0-9_]+" autocomplete="off" spellcheck="false">
+            <button class="primary" type="submit">Получить код</button>
+          </form>
+          <div id="viewer-link-code" class="viewer-guest" hidden>
+            <p>Отправь эту команду со своего аккаунта в <a class="viewer-text-link" href="https://www.twitch.tv/yanibox/chat" target="_blank" rel="noopener">чат Yanibox</a>. Код действует пять минут.</p>
+            <code id="viewer-command"></code>
+            <button id="viewer-copy-command" type="button">Скопировать команду</button>
+          </div>
+        </section>
+        <dl class="viewer-stats" aria-label="Статистика на канале Yanibox" hidden>
+          <div class="panel"><dt>Время просмотра</dt><dd data-stat="time">—</dd><dd class="hint" data-detail="time"></dd></div>
+          <div class="panel"><dt>Сообщения в чате</dt><dd data-stat="messages">—</dd><dd class="hint" data-detail="messages"></dd></div>
+          <div class="panel"><dt>Смайлы Twitch</dt><dd data-stat="emotes">—</dd><dd class="hint" data-detail="emotes"></dd></div>
+        </dl>
+        <div class="viewer-actions">
+          <a class="button" href="watchtime.html">Рейтинг зрителей</a>
+          <a class="button" href="films.html">К фильмам</a>
+          <button id="viewer-logout" type="button">Выйти</button>
+        </div>
+        <details class="viewer-settings">
+          <summary>Управление профилем</summary>
+          <div class="viewer-actions">
+            <button id="viewer-unlink" type="button" hidden>Отвязать Twitch</button>
+            <button id="viewer-delete" type="button">Удалить профиль</button>
+          </div>
+        </details>
+      </div>
+      <p class="hint viewer-message" role="status">Проверяем вход…</p>
+      <details class="viewer-settings panel">
+        <summary>Что хранит Yanibox</summary>
+        <p>Ник, открытый ключ доступа и контрольные суммы кода восстановления и сессий. После привязки сохраняются ID и логин Twitch, оценки фильмов и счётчик смайлов канала. Для регистрации email и пароль Twitch не нужны. Команду привязки бот читает в чате и обрабатывает без сохранения текста.</p>
+        <p>При отвязке удаляются связь с профилем и оценки. Публичный рейтинг WizeBot и общий счётчик смайлов канала ведутся отдельно.</p>
+      </details>
+      <noscript><style>.viewer-message { display: none }</style><p>Для входа в профиль включи JavaScript.</p></noscript>
+    </section>
+  </main>
+</body>
+</html>
