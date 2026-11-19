@@ -1,4 +1,4 @@
-import { session, setSession, settings, viewerRequest, onSessionChange } from './viewer-account.mjs?v=passkeys';
+import { session, setSession, settings, viewerRequest, onSessionChange } from './viewer-account.mjs?v=password';
 import { formatDuration } from './watchtime-period.mjs';
 
 const get = id => document.getElementById('viewer-' + id);
@@ -7,11 +7,14 @@ const guest = part('.viewer-guest');
 const member = part('.viewer-member');
 const identity = part('.viewer-identity');
 const message = part('.viewer-message');
-const webauthn = window.SimpleWebAuthnBrowser;
 const errors = {
   'rate-limit': 'Слишком много попыток. Попробуй через несколько минут.',
   'invalid-recovery': 'Код восстановления недействителен или уже использован.',
-  'invalid-name': 'Введи ник длиной от 2 до 32 символов.',
+  'invalid-login': 'Логин должен содержать от 3 до 24 русских или латинских букв, цифр и подчёркиваний.',
+  'invalid-password': 'Пароль должен содержать от 12 до 128 символов.',
+  'login-taken': 'Этот логин уже занят. Выбери другой.',
+  credentials: 'Неверный логин или пароль.',
+  'invalid-upgrade': 'Для этого профиля уже настроен вход с паролем.',
   'invalid-twitch': 'Этот логин Twitch не найден. Проверь написание.',
   'already-linked': 'Этот Twitch уже привязан к профилю.',
   'twitch-unavailable': 'Сейчас Twitch недоступен. Попробуй позже.',
@@ -78,6 +81,7 @@ async function showProfile(profile, refresh = true) {
   }
   part('.viewer-name').textContent = profile.name;
   part('.viewer-handle').textContent = profile.twitch ? '@' + profile.twitch : '';
+  get('legacy-upgrade').hidden = !profile.needsPassword;
   get('link-section').hidden = Boolean(profile.twitch);
   get('unlink').hidden = !profile.twitch;
   part('.viewer-stats').hidden = !profile.twitch;
@@ -123,7 +127,7 @@ function task(control, run) {
     try {
       await run(event);
     } catch (error) {
-      if (!session() && guest.hidden && get('recovery-saved').hidden) await showProfile(null);
+      if (!session() && guest.hidden) await showProfile(null);
       showError(error);
     } finally {
       control.disabled = false;
@@ -141,42 +145,59 @@ function click(id, run) {
   button.addEventListener('click', task(button, run));
 }
 
-async function ceremony(action, data = {}) {
-  if (!webauthn?.browserSupportsWebAuthn()) {
-    message.textContent = 'В этом браузере ключи доступа недоступны. Открой сайт в другом браузере.';
-    return;
-  }
-  const { id, options } = await viewerRequest(action + '-begin', data);
-  const response = action === 'login'
-    ? await webauthn.startAuthentication({ optionsJSON: options })
-    : await webauthn.startRegistration({ optionsJSON: options });
-  const result = await viewerRequest(action + '-finish', { id, response });
-  if (result.recovery) {
-    guest.hidden = true;
-    get('recover').reset();
-    get('recovery-code').textContent = result.recovery.match(/.{8}/g).join('-');
-    get('recovery-saved').hidden = false;
-    get('recovery-title').focus();
-  }
+async function acceptSession(result) {
   try {
     setSession(result.session);
   } catch {
-    message.textContent = 'Браузер запретил сохранение входа. Разреши хранение данных сайта и войди с ключом доступа.';
+    message.textContent = 'Браузер запретил сохранение входа. Разреши хранение данных сайта и войди снова.';
     return;
   }
-  if (!result.recovery) await reload();
+  for (const id of ['register', 'login', 'upgrade', 'recover']) get(id).reset();
+  await reload();
 }
 
-submit('register', data => ceremony('register', { name: data.get('name') }));
-click('login', () => ceremony('login'));
-submit('recover', data => ceremony('recover', {
-  recovery: data.get('recovery').replace(/[\s-]/g, '').toLowerCase(),
-}));
-click('recovery-done', async () => {
-  get('recovery-code').textContent = '';
-  get('recovery-saved').hidden = true;
-  await reload();
-});
+function showAuth(login) {
+  get('auth-title').textContent = login ? 'Вход' : 'Регистрация';
+  get('register').hidden = get('show-login').hidden = login;
+  get('login').hidden = get('show-register').hidden = !login;
+  get(login ? 'register' : 'login').reset();
+}
+
+async function legacyLogin() {
+  if (!window.SimpleWebAuthnBrowser) {
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'webauthn.js';
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.append(script);
+    });
+  }
+  const webauthn = window.SimpleWebAuthnBrowser;
+  if (!webauthn?.browserSupportsWebAuthn()) {
+    message.textContent = 'В этом браузере ключи доступа недоступны. Можно перейти на пароль со старым кодом восстановления.';
+    return;
+  }
+  const { id, options } = await viewerRequest('login-begin');
+  const response = await webauthn.startAuthentication({ optionsJSON: options });
+  await acceptSession(await viewerRequest('login-finish', { id, response }));
+}
+
+function passwordForm(id, action) {
+  submit(id, async fields => {
+    const data = Object.fromEntries(fields);
+    if (data.recovery) data.recovery = data.recovery.replace(/[\s-]/g, '').toLowerCase();
+    await acceptSession(await viewerRequest(action, data));
+  });
+}
+
+passwordForm('register', 'password-register');
+passwordForm('login', 'password-login');
+passwordForm('upgrade', 'password-upgrade');
+passwordForm('recover', 'password-upgrade-recovery');
+click('legacy-login', legacyLogin);
+click('show-login', () => { showAuth(true); get('login-name').focus(); });
+click('show-register', () => { showAuth(false); get('name').focus(); });
 
 submit('link', async data => {
   closeCode();
@@ -222,6 +243,7 @@ click('copy-command', async () => {
 click('logout', async () => {
   await viewerRequest('logout');
   setSession(null);
+  showAuth(true);
   await showProfile(null);
 });
 click('unlink', async () => {
@@ -230,16 +252,14 @@ click('unlink', async () => {
   await reload();
 });
 click('delete', async () => {
-  if (!confirm('Удалить профиль, ключ доступа на Yanibox и твои оценки фильмов?')) return;
+  if (!confirm('Удалить профиль Yanibox и твои оценки фильмов?')) return;
   await viewerRequest('delete');
   setSession(null);
   await showProfile(null);
   message.textContent = 'Профиль удалён.';
 });
 
-onSessionChange(() => {
-  if (get('recovery-saved').hidden) void reload();
-});
+onSessionChange(() => void reload());
 enabled = Boolean(await settings());
 if (enabled) {
   message.textContent = '';

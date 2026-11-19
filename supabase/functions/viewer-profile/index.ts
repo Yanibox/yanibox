@@ -1,7 +1,6 @@
-import {
-  generateAuthenticationOptions, generateRegistrationOptions,
-  verifyAuthenticationResponse, verifyRegistrationResponse,
-} from 'npm:@simplewebauthn/server@14.1.0';
+import { generateAuthenticationOptions, verifyAuthenticationResponse } from 'npm:@simplewebauthn/server@14.1.0';
+import { argon2idAsync } from 'npm:@noble/hashes@2.0.1/argon2.js';
+import { timingSafeEqual } from 'node:crypto';
 import { createClient } from 'npm:@supabase/supabase-js@2.110.0';
 
 const origin = new URL(Deno.env.get('YANIBOX_PROFILE_ORIGIN') || 'https://yanibox.github.io').origin;
@@ -15,6 +14,8 @@ const random = (length: number) => hex(crypto.getRandomValues(new Uint8Array(len
 const sha256 = async (value: string) => hex(new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode(value))));
 const base64url = (value: string) => btoa(value).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const recoveryCode = /^[a-f0-9]{32}$/;
+const loginName = /^[a-zа-яё0-9_]{3,24}$/;
+const dummySalt = crypto.getRandomValues(new Uint8Array(16));
 const sessionCode = /^[a-f0-9]{64}$/;
 const uuid = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
 const cors = {
@@ -75,83 +76,95 @@ async function twitchUser(query: URLSearchParams) {
     ? { id: String(user.id), login: String(user.login) } : null;
 }
 
-async function begin(body: Record<string, unknown>, purpose: string) {
-  let accountId: string | undefined;
-  let name: string | undefined;
-  let recoveryHash: string | undefined;
-  if (purpose === 'register') {
-    name = typeof body.name === 'string' ? body.name.normalize('NFC').trim() : '';
-    if (name.length < 2 || name.length > 32 || /[\p{Cc}\p{Cf}]/u.test(name)) throw new RequestError('invalid-name');
-    accountId = crypto.randomUUID();
-  }
-  if (purpose === 'recover') {
-    if (typeof body.recovery !== 'string' || !recoveryCode.test(body.recovery)) throw new RequestError('invalid-recovery');
-    recoveryHash = await sha256(body.recovery);
-    const profile = result(await database.from('yanibox_profiles').select('id,display_name')
-      .eq('recovery_hash', recoveryHash).maybeSingle());
-    if (!profile) throw new RequestError('invalid-recovery');
-    accountId = profile.id;
-    name = profile.display_name;
-  }
-  const options = accountId && name
-    ? await generateRegistrationOptions({
-      rpID, rpName: 'Yanibox', userID: encoder.encode(accountId), userName: name, userDisplayName: name,
-      attestationType: 'none', authenticatorSelection: { residentKey: 'required', userVerification: 'required' },
-    })
-    : await generateAuthenticationOptions({ rpID, userVerification: 'required' });
+async function beginLegacyLogin() {
+  const options = await generateAuthenticationOptions({ rpID, userVerification: 'required' });
   const saved = result(await database.from('yanibox_challenges').insert({
-    purpose, challenge: options.challenge, profile_id: accountId, display_name: name, recovery_hash: recoveryHash,
+    purpose: 'login', challenge: options.challenge,
   }).select('id').single());
   if (!saved) throw new RequestError('unavailable', 503);
   return { id: saved.id, options };
 }
 
-async function finish(body: Record<string, unknown>, purpose: string) {
+async function finishLegacyLogin(body: Record<string, unknown>) {
   if (typeof body.id !== 'string' || !uuid.test(body.id) || !body.response || typeof body.response !== 'object') {
     throw new RequestError('passkey');
   }
   const challenge = result(await database.from('yanibox_challenges').delete()
-    .eq('id', body.id).eq('purpose', purpose).gt('expires_at', new Date().toISOString())
+    .eq('id', body.id).eq('purpose', 'login').gt('expires_at', new Date().toISOString())
     .select().maybeSingle());
   if (!challenge) throw new RequestError('passkey');
   const session = random(32);
-  const sessionHash = await sha256(session);
-  if (purpose === 'login') {
-    const assertion = body.response as Parameters<typeof verifyAuthenticationResponse>[0]['response'];
-    if (typeof assertion.id !== 'string' || assertion.id.length > 1024) throw new RequestError('passkey');
-    const saved = result(await database.from('yanibox_passkeys').select('*').eq('id', assertion.id).maybeSingle());
-    if (!saved) throw new RequestError('passkey');
-    if (assertion.response?.userHandle !== base64url(saved.profile_id)) throw new RequestError('passkey');
-    const verified = await verifyAuthenticationResponse({
-      response: assertion, expectedChallenge: challenge.challenge, expectedOrigin: origin, expectedRPID: rpID,
-      requireUserVerification: true, credential: {
-        id: saved.id, publicKey: Uint8Array.from(atob(saved.public_key), char => char.charCodeAt(0)),
-        counter: saved.counter, transports: saved.transports,
-      },
-    }).catch(() => { throw new RequestError('passkey'); });
-    if (!verified.verified || !await rpc('yanibox_finish_login', {
-      key_id: saved.id, key_bytes: saved.public_key,
-      previous_counter: saved.counter, next_counter: verified.authenticationInfo.newCounter,
-      session_hash: sessionHash,
-    })) throw new RequestError('passkey');
-    return { session };
-  }
-  const verified = await verifyRegistrationResponse({
-    response: body.response as Parameters<typeof verifyRegistrationResponse>[0]['response'],
+  const assertion = body.response as Parameters<typeof verifyAuthenticationResponse>[0]['response'];
+  if (typeof assertion.id !== 'string' || assertion.id.length > 1024) throw new RequestError('passkey');
+  const saved = result(await database.from('yanibox_passkeys').select('*').eq('id', assertion.id).maybeSingle());
+  if (!saved || assertion.response?.userHandle !== base64url(saved.profile_id)) throw new RequestError('passkey');
+  const verified = await verifyAuthenticationResponse({
+    response: assertion,
     expectedChallenge: challenge.challenge, expectedOrigin: origin, expectedRPID: rpID, requireUserVerification: true,
+    credential: {
+      id: saved.id, publicKey: Uint8Array.from(atob(saved.public_key), char => char.charCodeAt(0)),
+      counter: saved.counter, transports: saved.transports,
+    },
   }).catch(() => { throw new RequestError('passkey'); });
-  if (!verified.verified || !verified.registrationInfo) throw new RequestError('passkey');
-  const key = verified.registrationInfo.credential;
-  const recovery = random(16);
-  if (!await rpc('yanibox_save_passkey', {
-    account_id: challenge.profile_id, name: challenge.display_name, previous_recovery: challenge.recovery_hash,
-    next_recovery: await sha256(recovery), key_id: key.id, key_bytes: btoa(String.fromCharCode(...key.publicKey)),
-    key_counter: key.counter, key_transports: key.transports ?? [], session_hash: sessionHash,
-  })) throw new RequestError('invalid-recovery');
-  return { session, recovery };
+  if (!verified.verified || !await rpc('yanibox_finish_login', {
+    key_id: saved.id, key_bytes: saved.public_key, previous_counter: saved.counter,
+    next_counter: verified.authenticationInfo.newCounter, session_hash: await sha256(session),
+  })) throw new RequestError('passkey');
+  return { session };
 }
 
-const fields = 'id,display_name,twitch_id,twitch_login';
+async function passwordVerifier(password: string, salt: Uint8Array) {
+  const digest = await argon2idAsync(encoder.encode(password), salt, { m: 19456, t: 2, p: 1, dkLen: 32 });
+  return 'argon2id-1:' + hex(salt) + ':' + hex(digest);
+}
+
+async function passwordAction(action: string, request: Request, body: Record<string, unknown>, previousSession: string | null = null) {
+  const name = typeof body.login === 'string' ? body.login.trim().normalize('NFC') : '';
+  const login = name.toLowerCase();
+  if (!loginName.test(login)) throw new RequestError(action === 'password-login' ? 'credentials' : 'invalid-login');
+  if (typeof body.password !== 'string' || body.password.length < 12 || body.password.length > 128) {
+    throw new RequestError(action === 'password-login' ? 'credentials' : 'invalid-password');
+  }
+  await rateLimit(request, 'password');
+  const session = random(32);
+  const sessionHash = await sha256(session);
+  if (action === 'password-login') {
+    await rateLimit(request, 'password-account', login);
+    const profile = result(await database.from('yanibox_profiles').select('password_hash').eq('login', login).maybeSingle());
+    const stored = profile?.password_hash as string | undefined;
+    const rawSalt = stored?.split(':')[1];
+    const salt = rawSalt ? Uint8Array.from(rawSalt.match(/../g)!, byte => parseInt(byte, 16)) : dummySalt;
+    const verifier = await passwordVerifier(body.password, salt);
+    if (!stored || !timingSafeEqual(encoder.encode(stored), encoder.encode(verifier)) ||
+       !await rpc('yanibox_login_password', { handle: login, verifier, session_hash: sessionHash })) {
+      throw new RequestError('credentials');
+    }
+    return { session };
+  }
+  let legacyCode = null;
+  if (action === 'password-upgrade-recovery') {
+    if (typeof body.recovery !== 'string' || !recoveryCode.test(body.recovery)) throw new RequestError('invalid-recovery');
+    legacyCode = await sha256(body.recovery);
+  }
+  const verifier = await passwordVerifier(body.password, crypto.getRandomValues(new Uint8Array(16)));
+  if (action === 'password-register') {
+    if (!await rpc('yanibox_register_password', { handle: login, name, verifier, session_hash: sessionHash })) {
+      throw new RequestError('login-taken', 409);
+    }
+    return { session };
+  }
+  try {
+    if (!await rpc('yanibox_upgrade_password', {
+      handle: login, verifier, new_session: sessionHash, previous_session: previousSession, legacy_code: legacyCode,
+    })) throw new RequestError(legacyCode ? 'invalid-recovery' : 'invalid-upgrade');
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === '23505') throw new RequestError('login-taken', 409);
+    throw error;
+  }
+  return { session };
+}
+
+const fields = 'id,display_name,twitch_id,twitch_login,login';
 
 async function accountAction(action: string, request: Request, body: Record<string, unknown>) {
   const token = request.headers.get('x-viewer-session');
@@ -166,8 +179,11 @@ async function accountAction(action: string, request: Request, body: Record<stri
 
   switch (action) {
     case 'profile': {
-      return { name: profile.display_name, twitch: profile.twitch_login };
+      return { name: profile.display_name, twitch: profile.twitch_login, needsPassword: !profile.login };
     }
+    case 'password-upgrade':
+      if (profile.login) throw new RequestError('invalid-upgrade');
+      return passwordAction(action, request, body, tokenHash);
     case 'refresh-twitch': {
       if (!profile.twitch_id) return { twitch: null };
       await rateLimit(request, action, id);
@@ -230,10 +246,12 @@ Deno.serve(async request => {
     if (raw.length > 24000) throw new RequestError('size', 413);
     const body = JSON.parse(raw);
     if (!body || typeof body.action !== 'string') throw new RequestError('invalid');
-    const ceremony = /^(register|login|recover)-(begin|finish)$/.exec(body.action);
-    if (ceremony) {
+    if (body.action === 'login-begin' || body.action === 'login-finish') {
       await rateLimit(request, 'passkey');
-      return json(await (ceremony[2] === 'begin' ? begin(body, ceremony[1]) : finish(body, ceremony[1])));
+      return json(await (body.action === 'login-begin' ? beginLegacyLogin() : finishLegacyLogin(body)));
+    }
+    if (['password-login', 'password-register', 'password-upgrade-recovery'].includes(body.action)) {
+      return json(await passwordAction(body.action, request, body));
     }
     return json(await accountAction(body.action, request, body));
   } catch (error) {
