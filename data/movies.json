@@ -1,5 +1,5 @@
 {
-  "revision": "53b503d2-944a-4cdf-849f-ca95b64dd701",
+  "revision": "065ce947-37b7-43a2-b60a-66539a3c8cff",
   "items": [
     {
       "id": "sheet-films-order-17",
@@ -1007,9 +1007,29 @@
       "plannedOn": "",
       "plannedTime": "",
       "created": ""
+    },
+    {
+      "id": "twitch-f445b256-d2ae-452e-83f0-b82ce0b6673d",
+      "title": "все страхи бо",
+      "viewer": "i_sergeevna_i",
+      "source": "",
+      "rewardTitle": "Смотрим фильм до 3х часов",
+      "category": "",
+      "status": "queued",
+      "rating": null,
+      "poster": "",
+      "autoPoster": "",
+      "runtime": null,
+      "note": "",
+      "watchedOn": "",
+      "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
+      "created": "2026-11-20T19:01:54.476232595Z"
     }
   ],
   "seen": [
-    "d80098e9-ee63-456f-ad0c-e8eca0cad5f3"
+    "d80098e9-ee63-456f-ad0c-e8eca0cad5f3",
+    "f445b256-d2ae-452e-83f0-b82ce0b6673d"
   ]
 }
