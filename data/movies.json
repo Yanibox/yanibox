@@ -1,5 +1,5 @@
 {
-  "revision": "55f685d4-9ffb-401a-8ae9-a77679f02850",
+  "revision": "6953e18c-ec51-4972-8785-e6b06705e7ef",
   "items": [
     {
       "id": "sheet-films-order-17",
@@ -1045,6 +1045,25 @@
       "plannedOn": "",
       "plannedTime": "",
       "created": "2026-11-20T20:10:06.440530954Z"
+    },
+    {
+      "id": "3a892c19-f1fb-4539-84a7-34e5af468bd5",
+      "title": "Как сохнет краска",
+      "viewer": "",
+      "source": "",
+      "rewardTitle": "",
+      "category": "",
+      "status": "queued",
+      "rating": null,
+      "poster": "",
+      "autoPoster": "",
+      "runtime": null,
+      "note": "",
+      "watchedOn": "",
+      "orderedOn": "",
+      "plannedOn": "",
+      "plannedTime": "",
+      "created": "2026-11-23T19:27:28.591Z"
     }
   ],
   "seen": [
